@@ -1,0 +1,359 @@
+<template>
+  <div
+    class="deerflow-chat-panel"
+    @dragenter="onDragEnter"
+    @dragover="onDragOver"
+    @dragleave="onDragLeave"
+    @drop="onDrop"
+  >
+    <!-- 顶部工具栏：引导页时不显示 -->
+    <WorkspaceHeader v-if="!showGlobalIntro" />
+
+    <!-- 拖拽遮罩 -->
+    <Transition name="drag-fade">
+      <div v-if="isDragging" class="drag-overlay">
+        <div class="drag-card">
+          <img :src="uploadDragImg" class="drag-img" alt="" />
+          <p class="drag-title">在此处拖放文件/图片</p>
+          <p class="drag-hint">最多支持 5 个文件，每个 50MB，支持 MD、TXT、PDF、DOCX、ODT、JPG、PNG、代码文件等</p>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 全局引导：点击"+"后 -->
+    <DeerflowIntro v-if="showGlobalIntro" key="global-intro" />
+
+    <!-- 对话级引导：已废弃 -->
+    <DeerflowIntro v-else-if="showThreadIntro" :thread-id="currentThreadId" key="thread-intro" />
+
+    <!-- 正常聊天区域 -->
+    <template v-else>
+      <!-- 消息列表 -->
+      <DeerflowMessageList
+        :messages="store.messages"
+        :loading="store.loadingMessages"
+        :is-streaming="store.isStreaming"
+        :welcome-message="store.getWelcomeMessageCopy()"
+        @copy="handleCopy"
+        @quote="handleQuote"
+        @feedback="handleFeedback"
+        @regenerate="handleRegenerate"
+      />
+
+      <!-- Todo 列表：显示在输入框上方 -->
+      <DeerflowTodoList :todos="store.currentTodos" />
+
+      <!-- 输入框：用 currentThreadId 作 key，切换对话时重建组件，隔离输入/文件/技能等状态 -->
+      <DeerflowInput
+        ref="deerflowInputRef"
+        :key="currentThreadId || 'no-thread'"
+        :is-loading="store.sendingMessage || store.uploadingFiles"
+        :is-streaming="store.isStreaming"
+        :disabled="store.sendingMessage || !currentThreadId"
+        :quoting-message="store.quotingMessage"
+        @submit="handleSubmit"
+        @stop="store.stopStreaming()"
+        @cancel-quote="store.clearQuotingMessage()"
+      />
+    </template>
+  </div>
+</template>
+
+<script setup>
+defineOptions({ name: 'DeerflowChatPanel' })
+
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useRoute, useRouter } from 'vue-router'
+import { useDeerflowChatStore } from '../store'
+import { useUserStore } from '@/modules/auth/store'
+import { useDeerflowFileDropProvider } from '../composables/useDeerflowFileDrop'
+import DeerflowMessageList from './DeerflowMessageList.vue'
+import DeerflowInput from './DeerflowInput.vue'
+import DeerflowIntro from './DeerflowIntro.vue'
+import DeerflowTodoList from './DeerflowTodoList.vue'
+import WorkspaceHeader from '@/modules/space/components/WorkspaceHeader.vue'
+import uploadDragImg from '@/assets/home/uploadDrag.png'
+
+const route = useRoute()
+const router = useRouter()
+const store = useDeerflowChatStore()
+const userStore = useUserStore()
+
+const { isDragging, onDragEnter, onDragOver, onDragLeave, onDrop } = useDeerflowFileDropProvider()
+
+const deerflowInputRef = ref(null)
+const currentThreadId = ref(null)
+const threadsLoaded = ref(false)
+const mountedOnce = ref(false) // 标记是否已完成首次挂载加载
+const initChatDataRunning = ref(false) // 防止 initChatData 并发执行
+
+const { threads, isCreatingNewThread } = storeToRefs(store)
+
+const showGlobalIntro = computed(() => {
+  // 显示引导页的条件：
+  // 1. 正在创建新对话
+  // 2. 对话列表已加载完成 && 没有选中任何对话（无论是否有对话列表）
+  const result = isCreatingNewThread.value || (threadsLoaded.value && !store.loadingThreads && !currentThreadId.value)
+  return result
+})
+
+const showThreadIntro = computed(() => {
+  return false
+})
+
+async function initChatData() {
+  // 未登录时不发起任何接口请求
+  if (!userStore.userInfo?.access_token) return
+
+  // 防止并发执行（如 onMounted 和 token watcher 同时触发）
+  if (initChatDataRunning.value) return
+  initChatDataRunning.value = true
+
+  try {
+
+    // 加载数字真人列表
+    store.loadDigitalHumans()
+
+    // 先加载智能体列表（用于助理选择器）
+    await store.loadAgents({ stateful: true })
+
+    // 根据选中的智能体查询对话列表
+    await store.fetchThreads()
+    threadsLoaded.value = true
+    // 初始化时加载一次模型列表（切换会话不重新加载）
+    if (store.selectedAgentId) {
+      store.loadChatModels(store.selectedAgentId)
+    }
+    if (route.params.threadId) {
+      const id = Number(route.params.threadId)
+      // 校验 URL 上的 threadId 是否仍存在于会话列表（删除后刷新 / 跨账号 URL 残留场景）
+      // 不存在时清掉 URL，回引导页，避免触发 loadFirstPage 404 + 残留 currentThreadId
+      const exists = store.threads.some(t => Number(t.id) === id)
+      if (!exists) {
+        currentThreadId.value = null
+        store.setCurrentThread(null)
+        if (route.params.threadId) {
+          router.replace('/deerflow-chats')
+        }
+      } else {
+        currentThreadId.value = id
+        store.setCurrentThread(id)
+        await store.loadFirstPage(id)
+      }
+    } else {
+      // 没有路由 threadId：显示引导页
+      currentThreadId.value = null
+      store.setCurrentThread(null)
+    }
+
+    // 处理待发消息（从引导页携带）
+    if (store.pendingIntroMessage && currentThreadId.value) {
+      const pending = store.pendingIntroMessage
+      store.pendingIntroMessage = null
+      const text = typeof pending === 'string' ? pending : pending.text
+      const files = typeof pending === 'string' ? [] : (pending.files || [])
+      const mode = typeof pending === 'string' ? 'flash' : pending.mode
+      const model = typeof pending === 'string' ? 'claude-sonnet-4-6' : pending.model
+      const skills = typeof pending === 'string' ? [] : (pending.skills || [])
+      await store.sendMessage(currentThreadId.value, text, files, { mode, model, skills })
+    }
+  } finally {
+    initChatDataRunning.value = false
+  }
+}
+
+onMounted(async () => {
+  // 须等 init 完成后再打开 route 监听，否则 mountedOnce 过早为 true 会与 init 竞态，切换/首屏都可能漏拉 history
+  try {
+    await initChatData()
+  } finally {
+    mountedOnce.value = true
+  }
+})
+
+// 监听登录状态：登录成功后（token 出现）自动加载数据
+// 用于解决 keep-alive 场景下：登出 → 重新登录后 onMounted 不会再次执行的问题
+watch(
+  () => userStore.userInfo?.access_token,
+  (token, oldToken) => {
+    // token 从无到有：用户重新登录
+    if (token && !oldToken) {
+      // 重置组件级状态，确保重新登录后从引导页开始而非残留上次状态
+      currentThreadId.value = null
+      threadsLoaded.value = false
+      // 清除 URL 中的 threadId，避免 initChatData 误走已选对话分支
+      if (route.params.threadId) {
+        router.replace('/deerflow-chats')
+      }
+      initChatData()
+    }
+  }
+)
+
+watch(
+  () => route.params.threadId,
+  async (newId, oldId) => {
+    if (!mountedOnce.value) return
+    // 路由 param 未变则不处理（避免与本地 currentThreadId ref 比较不同步导致误跳过）
+    if (newId === oldId) return
+
+    if (!newId) {
+      currentThreadId.value = null
+      store.setCurrentThread(null)
+      store.clearQuotingMessage()
+      return
+    }
+    const id = Number(newId)
+    if (Number.isNaN(id)) return
+    // URL 上的 threadId 不在列表里（如其他 tab 删除后回到本 tab）：回引导页
+    const exists = store.threads.some(t => Number(t.id) === id)
+    if (!exists) {
+      currentThreadId.value = null
+      store.setCurrentThread(null)
+      store.clearQuotingMessage()
+      router.replace('/deerflow-chats')
+      return
+    }
+    currentThreadId.value = id
+    store.setCurrentThread(id)
+    store.clearQuotingMessage()
+    // 路由变化 = 用户显式切换会话：强制重拉账本首屏
+    await store.loadFirstPage(id, { force: true })
+
+    if (store.pendingIntroMessage) {
+      const pending = store.pendingIntroMessage
+      store.pendingIntroMessage = null
+      const text = typeof pending === 'string' ? pending : pending.text
+      const files = typeof pending === 'string' ? [] : (pending.files || [])
+      const mode = typeof pending === 'string' ? 'flash' : pending.mode
+      const model = typeof pending === 'string' ? 'claude-sonnet-4-6' : pending.model
+      const skills = typeof pending === 'string' ? [] : (pending.skills || [])
+      await store.sendMessage(id, text, files, { mode, model, skills })
+    }
+  },
+)
+
+async function handleSubmit({ text, files, mode, model, skills }) {
+  if (!currentThreadId.value) return
+  const replyTo = store.quotingMessage
+  await store.sendMessage(currentThreadId.value, text, files, { mode, model, replyTo, skills })
+  store.clearQuotingMessage()
+}
+
+function handleCopy() {
+  // 由 DeerflowMessageList 处理 toast
+}
+
+function handleQuote(message) {
+  store.setQuotingMessage(message)
+  nextTick(() => deerflowInputRef.value?.focus())
+}
+
+function handleFeedback(messageId, type) {
+  store.submitFeedback(messageId, type)
+}
+
+async function handleRegenerate() {
+  if (!currentThreadId.value) return
+  await store.regenerateLastMessage(currentThreadId.value)
+}
+</script>
+
+<style scoped>
+.deerflow-chat-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: #fff;
+  position: relative;
+}
+
+.drag-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.drag-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 48px;
+  border-radius: 16px;
+  background: #fff;
+  min-width: 280px;
+}
+
+.drag-img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.drag-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2F3547;
+  margin: 0;
+}
+
+.drag-hint {
+  font-size: 12px;
+  color: #91949E;
+  margin: 0;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.drag-fade-enter-active,
+.drag-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.drag-fade-enter-from,
+.drag-fade-leave-to {
+  opacity: 0;
+}
+
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #9ca3af;
+  user-select: none;
+}
+
+.empty-img {
+  width: 120px;
+  height: 120px;
+  opacity: 0.5;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #6b7280;
+  margin: 0;
+}
+
+.empty-desc {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+
+</style>

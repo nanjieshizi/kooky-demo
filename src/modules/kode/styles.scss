@@ -1,0 +1,86 @@
+// Kode demo · 共享样式 token
+// 对齐 task module 的 Kooky Design System
+
+// ───────── 中性色阶 ─────────
+$bg-primary: #ffffff;
+$bg-secondary: #f7f7f8;
+$bg-tertiary: #f0f0f2;
+$text-display: #2F3547;
+$text-secondary: #666666;
+$text-muted: #999999;
+$text-faint: #BFBFC6;
+
+// 发丝边
+$border: rgba(0, 0, 0, 0.08);
+$border-light: rgba(0, 0, 0, 0.04);
+$border-strong: rgba(0, 0, 0, 0.16);
+
+// Aurora 渐变（唯一品牌主角）
+$aurora-pink: #F386BE;
+$aurora-purple: #8478FA;
+$aurora-blue: #77C9FB;
+$gradient-aurora: linear-gradient(90deg, #F386BE 0%, #8478FA 52%, #77C9FB 98%);
+$gradient-aurora-soft: linear-gradient(135deg, rgba(243,134,190,0.12) 0%, rgba(132,120,250,0.12) 52%, rgba(119,201,251,0.12) 98%);
+
+// Team palette
+$team-orange: #F67C43;
+$team-pink: #E9628B;
+$team-violet: #9F73F9;
+$team-cyan: #57CFDE;
+$team-blue: #659EFF;
+$team-green: #22C55E;
+
+// 语义色
+$success: #22c55e;
+$warning: #f59e0b;
+$danger: #ef4444;
+
+// 业务标签色（用例/需求/研发任务/缺陷）
+$pill-uc-bg: #E0F4FF;       $pill-uc-text: #0FB1E7;        // 用例
+$pill-req-bg: #E8F8EE;      $pill-req-text: #22C55E;       // 需求
+$pill-dev-bg: #EDE7FE;      $pill-dev-text: #8478FA;       // 研发任务
+$pill-bug-bg: #FFEEEC;      $pill-bug-text: #EF4444;       // 缺陷
+
+// 圆角
+$radius-sm: 6px;
+$radius-md: 8px;
+$radius-lg: 10px;
+$radius-xl: 12px;
+$radius-2xl: 14px;
+
+// 阴影
+$shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+$shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+$shadow-lg: 0 8px 24px rgba(0,0,0,0.10);
+
+// 间距
+$gap-xs: 4px;
+$gap-sm: 6px;
+$gap-md: 8px;
+$gap-lg: 12px;
+$gap-xl: 16px;
+
+// 字号
+$fs-xs: 10px;
+$fs-sm: 11px;
+$fs-base: 12px;
+$fs-md: 13px;
+$fs-lg: 14px;
+$fs-xl: 16px;
+$fs-2xl: 18px;
+
+// 字重
+$fw-regular: 400;
+$fw-medium: 500;
+$fw-semibold: 600;
+$fw-bold: 700;
+
+// 三栏宽度
+$left-col-w: 280px;
+$right-col-w: 320px;
+$top-bar-h: 48px;
+$tab-bar-h: 48px;
+
+// 动画时长
+$anim-fast: 0.15s;
+$anim-base: 0.22s;

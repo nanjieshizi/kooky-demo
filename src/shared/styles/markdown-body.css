@@ -1,0 +1,632 @@
+
+.markdown-body {
+  color-scheme: light;
+  --focus-outlineColor: #0969da;
+  --fgColor-default: #1f2328;
+  --fgColor-muted: #59636e;
+  --fgColor-accent: #0969da;
+  --fgColor-success: #1a7f37;
+  --fgColor-attention: #9a6700;
+  --fgColor-danger: #d1242f;
+  --fgColor-done: #8250df;
+  --bgColor-default: #ffffff;
+  --bgColor-muted: #f6f8fa;
+  --bgColor-neutral-muted: #818b981f;
+  --bgColor-attention-muted: #fff8c5;
+  --borderColor-default: #d1d9e0;
+  --borderColor-muted: #d1d9e0b3;
+  --borderColor-neutral-muted: #d1d9e0b3;
+  --borderColor-accent-emphasis: #0969da;
+  --borderColor-success-emphasis: #1a7f37;
+  --borderColor-attention-emphasis: #9a6700;
+  --borderColor-danger-emphasis: #cf222e;
+  --borderColor-done-emphasis: #8250df;
+  --color-prettylights-syntax-comment: #59636e;
+  --color-prettylights-syntax-constant: #0550ae;
+  --color-prettylights-syntax-constant-other-reference-link: #0a3069;
+  --color-prettylights-syntax-entity: #6639ba;
+  --color-prettylights-syntax-storage-modifier-import: #1f2328;
+  --color-prettylights-syntax-entity-tag: #0550ae;
+  --color-prettylights-syntax-keyword: #cf222e;
+  --color-prettylights-syntax-string: #0a3069;
+  --color-prettylights-syntax-variable: #953800;
+  --color-prettylights-syntax-brackethighlighter-unmatched: #82071e;
+  --color-prettylights-syntax-brackethighlighter-angle: #59636e;
+  --color-prettylights-syntax-invalid-illegal-text: #f6f8fa;
+  --color-prettylights-syntax-invalid-illegal-bg: #82071e;
+  --color-prettylights-syntax-carriage-return-text: #f6f8fa;
+  --color-prettylights-syntax-carriage-return-bg: #cf222e;
+  --color-prettylights-syntax-string-regexp: #116329;
+  --color-prettylights-syntax-markup-list: #3b2300;
+  --color-prettylights-syntax-markup-heading: #0550ae;
+  --color-prettylights-syntax-markup-italic: #1f2328;
+  --color-prettylights-syntax-markup-bold: #1f2328;
+  --color-prettylights-syntax-markup-deleted-text: #82071e;
+  --color-prettylights-syntax-markup-deleted-bg: #ffebe9;
+  --color-prettylights-syntax-markup-inserted-text: #116329;
+  --color-prettylights-syntax-markup-inserted-bg: #dafbe1;
+  --color-prettylights-syntax-markup-changed-text: #953800;
+  --color-prettylights-syntax-markup-changed-bg: #ffd8b5;
+  --color-prettylights-syntax-markup-ignored-text: #d1d9e0;
+  --color-prettylights-syntax-markup-ignored-bg: #0550ae;
+  --color-prettylights-syntax-meta-diff-range: #8250df;
+  --color-prettylights-syntax-sublimelinter-gutter-mark: #818b98;
+}
+
+.markdown-body table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.markdown-body table th,
+.markdown-body table td {
+  padding: 6px 12px;
+  border: 1px solid var(--borderColor-default);
+  white-space: nowrap;
+}
+
+.markdown-body table th {
+  background: var(--bgColor-muted);
+  font-weight: 600;
+}
+
+.markdown-body table tr:nth-child(even) td {
+  background: #fafbfc;
+}
+.markdown-body hr {
+  border: 1px solid #DFE2EA;
+  height: 0px;
+  margin: 16px 0;
+}
+
+/* ======================== */
+/* chat-input-footer        */
+/* ======================== */
+
+.chat-input-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 0 0 12px 12px;
+}
+
+.chat-input-footer .content-btn {
+  width: 32px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid #DFE2EA;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.chat-input-footer .content-btn:hover {
+  background: #EDEFF4;
+}
+
+.chat-input-footer .upload-disabled {
+  cursor: not-allowed !important;
+}
+
+.chat-input-footer .upload-disabled:hover {
+  background: unset !important;
+}
+
+.chat-input-footer .chat-input-footer-left .skill-change-btn {
+  background: transparent;
+  border: 1px solid #DFE2EA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #333;
+  font-size: 14px;
+  height: 28px;
+  border-radius: 8px;
+  width: initial !important;
+}
+
+.chat-input-footer .chat-input-footer-left .skill-change-btn:hover {
+  background: #EDEFF4;
+}
+
+.chat-input-footer .chat-input-footer-left .skill-change-btn-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.chat-input-footer .chat-input-footer-left,
+.chat-input-footer .chat-input-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-input-footer .chat-input-footer-right {
+  gap: 8px;
+}
+
+.chat-input-footer .chat-input-footer-right .common-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 22px;
+  background: rgba(5, 109, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+}
+
+.chat-input-footer .chat-input-footer-right .common-btn > img {
+  width: 16px;
+  height: 16px;
+}
+
+.chat-input-footer .chat-input-footer-right .img-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.chat-input-footer .chat-input-footer-right .common-btn-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.chat-input-footer .chat-input-footer-right .send-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  background: linear-gradient(193deg, #C3A1FE 8%, #6586FF 28%, #338CFF 52%, #6D7DFF 90%);
+  box-shadow: inset 0px 0.8px 3.2px 0px rgba(255, 255, 255, 0.5);
+}
+
+.chat-input-footer .chat-input-footer-right .send-btn i {
+  font-size: 16px;
+  color: #fff;
+}
+
+.chat-input-footer .send-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.chat-input-footer .cancel-send-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 20px;
+  background: linear-gradient(226deg, #6778FF 4%, #2E9DF6 97%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+}
+
+.chat-input-footer .cancel-send-btn .cancel-send-btn-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: #FFFFFF;
+}
+
+.chat-input-footer .chat-input-footer-choose {
+  overflow: hidden;
+  height: 28px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #dfe2ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.chat-input-footer .chat-input-footer-choose .l-lwss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 6px;
+  box-sizing: border-box;
+}
+
+.chat-input-footer .chat-input-footer-choose .l-lwss:hover {
+  background: #f5f6f9;
+}
+
+.chat-input-footer .chat-input-footer-choose .word {
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 22px;
+  letter-spacing: normal;
+  color: #333333;
+  margin-left: 7px;
+  user-select: none;
+}
+
+.chat-input-footer .chat-input-footer-choose .r-icon-style {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-input-footer .chat-input-footer-choose .r-icon-style:hover {
+  background: #f5f6f9;
+}
+
+.chat-input-footer .chat-input-footer-choose.active {
+  border-color: #237fff;
+  background: #f2f8ff;
+}
+
+.chat-input-footer .chat-input-footer-choose.active .l-lwss:hover {
+  background: #f2f8ff;
+}
+
+.chat-input-footer .chat-input-footer-choose.active .r-icon-style:hover {
+  background: #f2f8ff;
+}
+
+.chat-input-footer .chat-input-footer-choose.active .word {
+  color: #237fff;
+}
+
+.chat-input-footer .chat-input-footer-choose.dishover {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chat-input-footer .chat-input-footer-choose-sk {
+  padding: 6px 8px;
+  height: 28px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #dfe2ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.chat-input-footer .chat-input-footer-choose-sk:hover {
+  background: #f5f6f9;
+}
+
+.chat-input-footer .chat-input-footer-choose-sk .word {
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 22px;
+  letter-spacing: normal;
+  /* 文字1 */
+  color: #333333;
+  margin-left: 7px;
+  user-select: none;
+}
+
+.chat-input-footer .chat-input-footer-choose-sk.active {
+  border-color: #237fff;
+  background: #f2f8ff;
+}
+
+.chat-input-footer .chat-input-footer-choose-sk.active .word {
+  color: #237fff;
+}
+
+.chat-input-footer .search-mode-dropdown {
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  min-width: 210px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px 0px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  padding: 8px 6px;
+}
+
+.chat-input-footer .search-mode-title {
+  font-size: 12px;
+  color: #888;
+  padding: 0 0 8px 6px;
+}
+
+.chat-input-footer .search-mode-item {
+  padding: 8px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+}
+
+.chat-input-footer .search-mode-item.active {
+  background: #f5f6f9;
+  color: #237fff;
+}
+
+.chat-input-footer .search-mode-item:not(.active):hover {
+  background: #f5f6f9;
+}
+
+.chat-input-footer .pos-gou {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* ======================== */
+/* chatflow-plugin-mask     */
+/* ======================== */
+
+.chatflow-plugin-mask .chat-input-footer .content-btn,
+.chatflow-plugin-mask .chat-input-footer .send-btn {
+  width: 28px;
+  height: 28px;
+}
+
+/* ======================== */
+/* chat-main (chatInput)    */
+/* ======================== */
+
+.chat-main {
+  width: 100%;
+  background-color: #fff;
+  box-sizing: border-box;
+  position: relative;
+  border: solid 1px transparent;
+  border-radius: 12px;
+  background-image: linear-gradient(#fff, #fff),
+    linear-gradient(265deg, #FB06F0 0%, #853AFC 60%, #49C0F2 99%);
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+}
+
+.chat-main .chat-main-con {
+  padding: 4px 10px 12px 10px;
+}
+
+.chat-main .disabled-chat-main {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.chat-main .left-l-shape-container {
+  position: relative;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.chat-main .norem-editable-div {
+  min-height: 60px;
+  max-height: 107px;
+  line-height: 22px;
+  outline: none;
+  font-size: 14px;
+  caret-color: #333333;
+  padding: 3px;
+  padding-bottom: 0;
+  word-break: break-all;
+}
+
+.chat-main .norem-editable-div::after {
+  content: attr(placeholder);
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 24px;
+  letter-spacing: normal;
+  color: #ccc;
+}
+
+/* ======================== */
+/* skillsSelect             */
+/* ======================== */
+
+/* 建议框样式 */
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  user-select: none;
+  height: 32px;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.suggestion-item:hover {
+  border-radius: 4px;
+  background: rgba(47, 53, 71, 0.06);
+}
+
+.suggestion-item .suggestion-item-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.suggestion-item .suggestion-item-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 12px;
+  color: #91949E;
+}
+
+.suggestion-item .suggestion-item-icon.active,
+.suggestion-item .suggestion-item-icon:hover {
+  color: #FF7D00;
+}
+
+.suggestion-item .skill-icon {
+  margin-right: 6px;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+/* ======================== */
+
+.cf-user-name {
+  font-family: PingFang SC;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 24px;
+  letter-spacing: normal;
+  color: #2F3547;
+  flex-shrink: 0;
+  width: 105px;
+}
+
+.cf-user-title {
+  margin-left: 6px;
+  font-family: PingFang SC;
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 24px;
+  letter-spacing: normal;
+  color: #91949E;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ======================== */
+/* skillsTag                */
+/* ======================== */
+
+.norem-module-tag {
+  height: 12px;
+  line-height: 12px;
+  text-align: center;
+  display: inline-block;
+  border-radius: 6px;
+  font-size: 14px;
+  letter-spacing: normal;
+  color: #436FF6;
+  user-select: none;
+  position: relative;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 4px 6px;
+  margin-top: 4px;
+  margin-right: 8px;
+  margin-left: 0;
+  float: left;
+  shape-outside: margin-box;
+  display: flex;
+  align-items: center;
+  box-sizing: content-box !important;
+}
+
+.norem-module-tag:hover {
+  background-color: #F0F6FF !important;
+}
+
+.norem-module-tag:hover .close-icon {
+  opacity: 1;
+  transform: scale(1);
+  visibility: visible;
+}
+
+.norem-module-tag .close-icon {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.2s ease-in-out;
+  visibility: hidden;
+  position: absolute;
+  right: -4px;
+  top: -4px;
+  cursor: pointer;
+}
+
+.norem-module-tag .skill-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 4px;
+}
+
+/* ======================== */
+/* uploadFile               */
+/* ======================== */
+
+.uploadList {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: calc(100% - 32px);
+  overflow-x: auto;
+  margin: -4px 6px 6px 6px;
+  padding-top: 12px;
+}
+
+.uploadList .upload-item {
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  min-width: 200px;
+  max-width: 200px;
+  position: relative;
+  border-radius: 6px;
+  background: #F7F7F7;
+  transition: all .2s ease-in-out;
+}
+
+.uploadList .upload-item:hover {
+  background: rgba(47, 53, 71, 0.08);
+}
+
+.uploadList .upload-item:hover .close-icon {
+  opacity: 1;
+  visibility: visible;
+}
+
+.uploadList .upload-item .close-icon {
+  color: #91949E;
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.uploadList .upload-item .uploadItem-name {
+  margin-left: 8px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.uploadList .upload-item .uploadItem-name > div {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140px;
+  font-size: 14px;
+  color: #333;
+}

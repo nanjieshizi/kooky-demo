@@ -1,0 +1,756 @@
+/* ===== Body (scrollable) ===== */
+.sdn-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px 24px;
+  position: relative;
+}
+
+/* ===== Provider Card ===== */
+.sdn-provider-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  border-radius: 12px;
+}
+
+.sdn-provider-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #f5f6f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #FFFFFF;
+  box-sizing: border-box;
+  /* 边框色/二级边框色 */
+  border: 1px solid #ECEEF3;
+}
+
+.sdn-provider-avatar__img {
+  width: 100%;
+  height: 100%;
+  max-width: 28px;
+  max-height: 28px;
+  object-fit: contain;
+}
+
+.sdn-provider-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sdn-provider-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sdn-provider-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2F3547;
+  line-height: 1.4;
+}
+
+.sdn-official-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px;
+  height: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #FF621F;
+  background: #FFF1EA;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.sdn-provider-desc {
+  margin: 0;
+  font-size: 13px;
+  color: #909399;
+  line-height: 1.5;
+}
+
+/* ===== Section ===== */
+.sdn-section {
+  margin-bottom: 24px;
+}
+
+.sdn-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 0 2px;
+}
+
+.sdn-section-header--switch {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sdn-section-header__left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sdn-switch-status {
+  font-family: PingFang SC;
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 22px;
+  letter-spacing: normal;
+  color: #91949E;
+  white-space: nowrap;
+}
+
+.sdn-section-header__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  .el-switch.is-checked {
+    :deep(.el-switch__core) {
+      background-color: rgba(27, 27, 27, 1) !important;
+      border-color: rgba(27, 27, 27, 1) !important;
+    }
+  }
+}
+
+.sdn-kode-tip {
+  height: 68px;
+  margin-bottom: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  /* 警告色/背景色 */
+  background: #FFF6E8;
+  font-family: PingFang SC;
+  line-height: 22px;
+  letter-spacing: normal;
+  /* 文本色&图标色/一级文本色 */
+  color: #2F3547;
+  /* 同一时段仅可启用一个 Kode 模型服务商，切换后原有服务商自动停用当前生效： */
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.sdn-section-header-refresh {
+  margin-bottom: 8px;
+}
+
+.sdn-section-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2F3547;
+  line-height: 1.4;
+}
+
+.sdn-section-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #909399;
+  background: #f0f0f0;
+  border-radius: 9px;
+  line-height: 1;
+}
+
+.sdn-refresh-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 12px;
+  color: #909399;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    color: #606266;
+    background: rgba(47, 53, 71, 0.06);
+  }
+}
+
+.sdn-refresh-icon {
+  font-size: 16px;
+}
+
+/* ===== Quota Card ===== */
+.sdn-quota-card {
+  border-radius: 12px;
+  padding: 20px 16px 16px;
+  background: linear-gradient(270deg, rgba(255, 134, 112, 0.1) 23%, rgba(198, 159, 237, 0.1) 75%, rgba(129, 190, 252, 0.1) 100%);
+}
+
+.sdn-quota-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &--top {
+    margin-bottom: 12px;
+  }
+
+  &--sub {
+    margin-bottom: 8px;
+  }
+}
+
+.sdn-quota-row-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sdn-quota-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2F3547;
+  line-height: 1.4;
+  white-space: nowrap;
+  margin-right: 3px;
+}
+
+.sdn-info-icon {
+  flex-shrink: 0;
+
+  &--mask {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background-color: #91949E;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+  }
+}
+
+.sdn-quota-warning {
+  font-size: 12px;
+  color: #606572;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.sdn-quota-amount {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2F3547;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
+.sdn-quota-reset {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.4;
+}
+
+.sdn-quota-used {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.4;
+}
+
+/* ===== Progress Section ===== */
+.sdn-progress-section {
+  position: relative;
+  margin-bottom: 46px;
+}
+
+.sdn-progress-indicator {
+  position: absolute;
+  top: 17px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+.sdn-progress-indicator--start {
+  transform: translateX(0);
+  align-items: flex-start;
+}
+
+.sdn-progress-indicator--end {
+  transform: translateX(-100%);
+  align-items: flex-end;
+}
+
+.sdn-indicator-arrow {
+  width: 12px;
+  height: 7px;
+  margin-bottom: 2px;
+}
+
+.sdn-indicator-label {
+  white-space: nowrap;
+  font-size: 12px;
+  color: #91949E;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+/* ===== Apply Button ===== */
+.sdn-apply-btn {
+  display: block;
+  width: 116px;
+  height: 32px;
+  line-height: 32px;
+  text-align: center;
+  background: #171B26;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #2E323C;
+  }
+
+  &:disabled {
+    background: #91949E;
+    cursor: not-allowed;
+  }
+}
+
+.is-applied {
+  width: 130px;
+  height: 32px;
+  border-radius: 8px;
+  /* 文本色&图标色/四级文本色 */
+  background: #C2C3C9 !important;
+  /* 自动布局 */
+  display: flex;
+  flex-direction: column;
+  padding: 5px 16px;
+  font-family: PingFang SC;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 22px;
+  letter-spacing: normal;
+  /* 填充色/填充色 */
+  color: #FFFFFF;
+}
+
+/* ===== Model List ===== */
+.sdn-model-list {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #ebeef5;
+  overflow: hidden;
+}
+
+.sdn-model-empty {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #ebeef5;
+  padding: 32px 20px;
+  text-align: center;
+  font-size: 13px;
+  color: #c0c4cc;
+}
+
+.sdn-model-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px 9px 12px;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.sdn-model-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2F3547;
+  line-height: 22px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+}
+
+.sdn-model-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sdn-price-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #7c5cfc;
+  background: #f0edff;
+  border-radius: 4px;
+  line-height: 1.3;
+}
+
+.sdn-price-text {
+  font-size: 13px;
+  color: #606572;
+  line-height: 1.4;
+}
+
+/* ===== 申请更多额度 Inline Form ===== */
+.sdn-quota-apply-area {
+  margin-top: 14px;
+}
+
+.sdn-quota-form {
+  padding: 16px;
+  background: #FFFFFF;
+  border-radius: 12px;
+}
+
+.sdn-quota-form-header {
+  margin-bottom: 16px;
+}
+
+.sdn-quota-form-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2F3547;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.sdn-quota-form-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.5;
+}
+
+/* ===== 单选组 ===== */
+.sdn-quota-type-row {
+  display: flex;
+  flex-direction: row;
+  gap: 44px;
+  margin-bottom: 12px;
+}
+
+.sdn-quota-type-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.sdn-quota-type-radio {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid #C2C3C9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.2s;
+
+  .active & {
+    border-color: #FF621F;
+  }
+}
+
+.sdn-quota-type-radio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FF621F;
+}
+
+.sdn-quota-type-label {
+  font-size: 14px;
+  color: #2F3547;
+  font-weight: normal;
+}
+
+.sdn-quota-type-label-tip {
+  color: #91949E
+}
+
+/* ===== 第二行：输入框 + 按钮 ===== */
+.sdn-quota-action-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.sdn-quota-action-input {
+  width: 240px;
+  --el-input-focus-border-color: #FF621F;
+
+  .sdn-line {
+    position: absolute;
+    height: 14px;
+    width: 1px;
+    background: #D8D8D8;
+    right: 0;
+  }
+}
+
+
+.sdn-quota-action-placeholder {
+  flex: 1;
+}
+
+.sdn-quota-action-btns {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.sdn-quota-form-row {
+  margin-bottom: 16px;
+}
+
+.sdn-quota-form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2F3547;
+  line-height: 1.4;
+}
+
+.sdn-quota-form-value {
+  display: block;
+  padding: 12px 16px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #2F3547;
+  background: #f5f6f7;
+  border-radius: 8px;
+  line-height: 1.2;
+}
+
+.sdn-quota-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.sdn-quota-form-btn-cancel {
+  border-radius: 8px;
+  font-size: 14px;
+  // padding: 8px 20px;
+  width: 60px;
+  text-align: center;
+  &:hover {
+    border-radius: 8px;
+    /* 填充色/填充色 */
+    background: #FFFFFF;
+    box-sizing: border-box;
+    /* 边框色/二级边框色 */
+    border: 1px solid #ECEEF3;
+    font-family: PingFang SC;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 22px;
+    text-align: justify; /* 浏览器可能不支持 */
+    letter-spacing: normal;
+    color: #FF621F;
+  }
+}
+
+.sdn-quota-form-btn-submit {
+  border-radius: 8px;
+  font-size: 14px;
+  width: 88px;
+  text-align: center;
+  background: #171B26;
+  border-color: #171B26;
+  margin-left: 0 !important;
+  &:hover {
+    background: #2E323C;
+    border-color: #2E323C;
+  }
+
+  &.is-submitting.is-disabled,
+  &.is-submitting:disabled {
+    background: #171B26 !important;
+    border-color: #171B26 !important;
+    opacity: 1;
+    cursor: wait;
+  }
+
+  &__inner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  &__spinner {
+    display: block;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    object-fit: contain;
+    animation: sdn-quota-submit-spin 0.9s linear infinite;
+  }
+}
+
+@keyframes sdn-quota-submit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sdn-quota-tip {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 400;
+  color: #606572;
+  margin-top: 8px;
+  justify-content: flex-end;
+  .sdn-info-icon {
+    margin-right: 4px;
+  }
+  .highlight {
+    color: #2E323C;
+    font-weight: 600;
+    margin: 0 4px;
+  }
+}
+.sdn-quota-warning-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #FF621F;
+  line-height: 1.4;
+  padding-left: 2px;
+}
+
+.sdn-quota-warning-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* ===== 所属产线 / 所属项目 ===== */
+.sdn-quota-org-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sdn-quota-org-field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sdn-quota-org-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #2F3547;
+  line-height: 1.4;
+}
+
+.sdn-quota-org-label-text {
+  display: inline-flex;
+  align-items: center;
+}
+
+.sdn-quota-org-required {
+  color: #FF5233;
+  margin-left: 2px;
+}
+
+.sdn-quota-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: #C0C4CC;
+  color: #FFFFFF;
+  font-size: 10px;
+  line-height: 1;
+  cursor: help;
+  user-select: none;
+}
+
+.sdn-quota-help:hover {
+  background: #A8ABB2;
+}
+
+.sdn-quota-org-optional {
+  color: #909399;
+  font-weight: 400;
+}
+
+.sdn-quota-scope-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #FF621F;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sdn-quota-scope-toggle:hover {
+  opacity: 0.82;
+}
+
+.sdn-quota-scope-switch {
+  padding: 0 5px;
+  height: 16px;
+  line-height: 16px;
+  font-size: 11px;
+  color: #FF621F;
+  background: #FFF1EA;
+  border-radius: 4px;
+}
+
+.sdn-quota-org-select {
+  width: 100%;
+}

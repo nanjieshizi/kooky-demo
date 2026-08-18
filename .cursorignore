@@ -1,0 +1,63 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-electron/
+build/
+
+# Documentation and generated notes
+docs/
+
+# Local agent and workspace tooling
+.agent/
+.agents/
+.claude/
+.code/
+.codex/
+.tasks/
+.worktrees/
+
+# Editor and IDE state
+.vscode/
+.idea/
+
+# Caches
+.cache/
+.npm-cache/
+.electron-cache/
+.electron-builder-cache/
+.vite/
+**/.vite/
+
+# Runtime and logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Generated media and binary assets
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.bmp
+*.ico
+*.icns
+*.mp4
+*.mov
+*.webm
+*.pdf
+*.zip
+*.tar
+*.gz
+*.7z
+
+# Source maps
+*.map

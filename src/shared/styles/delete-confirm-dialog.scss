@@ -1,0 +1,79 @@
+// 确认弹框：标题与关闭按钮同一行垂直居中（协作数字人 / 一人团队等复用）
+@mixin delete-dialog-header-row {
+  .delete-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+
+  .delete-dialog-header-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .delete-dialog-close {
+    position: static;
+    top: auto;
+    right: auto;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    padding: 0;
+
+    &:hover {
+      background: #f3f4f6;
+    }
+  }
+
+  .delete-dialog-title {
+    line-height: 24px;
+  }
+}
+
+// Element Plus 弹框：标题与关闭按钮同一行垂直居中
+@mixin el-dialog-header-row {
+  .el-dialog__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-right: 0;
+    padding-right: 0;
+  }
+
+  .el-dialog__title {
+    flex: 1;
+    min-width: 0;
+    line-height: 24px;
+    padding: 0;
+  }
+
+  .el-dialog__headerbtn {
+    position: static;
+    top: auto;
+    right: auto;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .el-dialog__headerbtn .el-dialog__close {
+    margin-top: 0;
+  }
+}

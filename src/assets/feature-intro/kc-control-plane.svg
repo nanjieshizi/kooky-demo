@@ -1,0 +1,69 @@
+<svg width="1200" height="675" viewBox="0 0 1200 675" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="675" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#170B0B"/>
+      <stop offset="1" stop-color="#1A1516"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="260" y1="150" x2="936" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F85149"/>
+      <stop offset="1" stop-color="#FF9B8A"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <g opacity="0.18" stroke="#5B6B83" stroke-width="1">
+    <path d="M0 96H1200M0 192H1200M0 288H1200M0 384H1200M0 480H1200M0 576H1200"/>
+    <path d="M96 0V675M192 0V675M288 0V675M384 0V675M480 0V675M576 0V675M672 0V675M768 0V675M864 0V675M960 0V675M1056 0V675"/>
+  </g>
+  <rect x="120" y="108" width="960" height="404" rx="30" fill="#161112" stroke="#472525"/>
+  <rect x="484" y="172" width="232" height="136" rx="24" fill="#100C0D" stroke="#5A2F2F"/>
+  <rect x="516" y="202" width="168" height="16" rx="8" fill="#2A1516"/>
+  <rect x="516" y="232" width="120" height="10" rx="5" fill="#5B6B83"/>
+  <rect x="516" y="254" width="152" height="10" rx="5" fill="#5B6B83"/>
+  <rect x="516" y="278" width="108" height="10" rx="5" fill="#5B6B83"/>
+  <circle cx="600" cy="240" r="44" fill="none" stroke="url(#accent)" stroke-width="10" stroke-dasharray="96 28"/>
+  <path d="M600 308V370" stroke="url(#accent)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M600 370L414 414" stroke="url(#accent)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M600 370L786 414" stroke="url(#accent)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M600 370V438" stroke="url(#accent)" stroke-width="10" stroke-linecap="round"/>
+  <g transform="translate(320 388)">
+    <rect width="168" height="92" rx="18" fill="#100C0D" stroke="#5A2F2F"/>
+    <rect x="18" y="18" width="80" height="12" rx="6" fill="#FF9B8A"/>
+    <rect x="18" y="44" width="118" height="8" rx="4" fill="#5B6B83"/>
+    <rect x="18" y="60" width="96" height="8" rx="4" fill="#5B6B83"/>
+  </g>
+  <g transform="translate(516 388)">
+    <rect width="168" height="92" rx="18" fill="#100C0D" stroke="#5A2F2F"/>
+    <rect x="18" y="18" width="96" height="12" rx="6" fill="#F85149"/>
+    <rect x="18" y="44" width="114" height="8" rx="4" fill="#5B6B83"/>
+    <rect x="18" y="60" width="88" height="8" rx="4" fill="#5B6B83"/>
+  </g>
+  <g transform="translate(712 388)">
+    <rect width="168" height="92" rx="18" fill="#100C0D" stroke="#5A2F2F"/>
+    <rect x="18" y="18" width="70" height="12" rx="6" fill="#FF9B8A"/>
+    <rect x="18" y="44" width="120" height="8" rx="4" fill="#5B6B83"/>
+    <rect x="18" y="60" width="100" height="8" rx="4" fill="#5B6B83"/>
+  </g>
+  <path d="M408 434H516" stroke="url(#accent)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M684 434H712" stroke="url(#accent)" stroke-width="8" stroke-linecap="round"/>
+  <rect x="162" y="492" width="876" height="94" rx="22" fill="#120D0E" stroke="#472525"/>
+  <g transform="translate(192 520)">
+    <rect width="150" height="38" rx="19" fill="#221416" stroke="#6A3637"/>
+    <circle cx="22" cy="19" r="6" fill="#F85149"/>
+    <rect x="40" y="11" width="84" height="10" rx="5" fill="#FDE9E5"/>
+  </g>
+  <g transform="translate(362 520)">
+    <rect width="148" height="38" rx="19" fill="#221416" stroke="#6A3637"/>
+    <circle cx="22" cy="19" r="6" fill="#FF9B8A"/>
+    <rect x="40" y="11" width="70" height="10" rx="5" fill="#FDE9E5"/>
+  </g>
+  <g transform="translate(530 520)">
+    <rect width="154" height="38" rx="19" fill="#221416" stroke="#6A3637"/>
+    <circle cx="22" cy="19" r="6" fill="#3FB950"/>
+    <rect x="40" y="11" width="88" height="10" rx="5" fill="#FDE9E5"/>
+  </g>
+  <g transform="translate(704 520)">
+    <rect width="148" height="38" rx="19" fill="#221416" stroke="#6A3637"/>
+    <circle cx="22" cy="19" r="6" fill="#FFB86B"/>
+    <rect x="40" y="11" width="74" height="10" rx="5" fill="#FDE9E5"/>
+  </g>
+</svg>

@@ -1,0 +1,147 @@
+/**
+ * 全局滚动条样式
+ * 支持 macOS 和 Windows，滚动时才显示
+ */
+
+/* 全局默认滚动条样式 - 应用到所有元素 */
+* {
+  /* Webkit 浏览器（Chrome, Edge, Safari） */
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  /* 悬停时显示 */
+  &:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  /* 滚动时显示（通过 JS 添加 class） */
+  &.is-scrolling::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* 深色主题 */
+.dark {
+  * {
+    &:hover::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    &.is-scrolling::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  }
+}
+
+/* 自定义滚动条 class - 用于需要精确控制的场景 */
+.custom-scrollbar {
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* Webkit 浏览器（Chrome, Edge, Safari） */
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  /* 悬停时显示 */
+  &:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  /* 滚动时显示（通过 JS 添加 class） */
+  &.is-scrolling::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  /* 深色主题 */
+  &.dark {
+    &:hover::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    &.is-scrolling::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  }
+}
+
+/* 横向滚动条 */
+.custom-scrollbar-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  &.is-scrolling::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* 双向滚动条 */
+.custom-scrollbar-both {
+  overflow: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  &.is-scrolling::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}
+

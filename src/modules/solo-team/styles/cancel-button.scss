@@ -1,0 +1,13 @@
+// 一人团队 / 我的员工：取消按钮（白底描边，与 MarketCustomButton--default 一致）
+@mixin solo-team-cancel-button {
+  box-sizing: border-box;
+  border: 1px solid #dfe2ea;
+  background: #fff;
+  color: #2f3547;
+
+  &:hover {
+    opacity: 1;
+    background: #f5f6f9;
+    border-color: #dfe2ea;
+  }
+}
