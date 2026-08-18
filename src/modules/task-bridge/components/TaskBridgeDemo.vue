@@ -120,12 +120,6 @@
           <p class="bridge-composer-disclaimer">对话内容将由大模型处理，涉密及个人隐私信息请谨慎输入</p>
         </form>
 
-        <div v-if="project.phase === 'planned'" class="bridge-next-step">
-          <span>你的任务已自动加入「我的待办」</span>
-          <button type="button" class="text-link" @click="openPersonalTask">进入个人任务</button>
-          <button type="button" @click="openTodo">查看我的待办</button>
-          <button type="button" class="text-link" @click="simulateComplete">模拟完成并回填</button>
-        </div>
       </section>
 
       <aside v-if="(isTaskConversation && ['plan', 'base'].includes(activePanel)) || (!isTaskConversation && (activePanel === 'plan' || activePanel === 'base' || isEditingAssignments))" class="bridge-panel">
@@ -134,7 +128,7 @@
           <div class="base-card"><b>{{ isTaskConversation ? '任务底座' : '项目底座' }} v{{ project.snapshot.version }}</b><p>{{ project.snapshot.projectBase }}</p><small>已被 {{ project.tasks.length || 3 }} 个任务引用</small></div>
           <section class="base-preview-section"><span>项目目标</span><p>完成可追溯的任务桥 Demo 主流程，让讨论、执行与经验沉淀形成闭环。</p></section>
           <section class="base-preview-section"><span>阻塞约束</span><p>任务必须具备可验证交付物与验收标准。</p></section>
-          <section class="base-preview-section"><span>团队成员</span><div class="base-mini-people"><b>我 <small>项目负责人</small></b><b>产品数字人 <small>调研协作</small></b><b>设计数字人 <small>原型协作</small></b></div></section>
+          <section class="base-preview-section"><span>团队成员</span><div class="base-member-stack" aria-label="团队成员头像"><span><img :src="memberAvatars.owner" alt="我" /></span><span><img :src="memberAvatars.research" alt="产品数字人" /></span><span><img :src="memberAvatars.design" alt="设计数字人" /></span><button type="button" class="base-member-add" aria-label="添加团队成员">+</button></div><div class="base-mini-people"><b>我 <small>项目负责人</small></b><b>产品数字人 <small>调研协作</small></b><b>设计数字人 <small>原型协作</small></b></div></section>
           <section class="base-preview-section"><span>AI 角色</span><div class="base-mini-people"><b>产品数字人 <small>收集证据并形成竞品结论</small></b><b>设计数字人 <small>产出核心流程与异常状态</small></b></div></section>
           <section class="base-preview-section"><span>工作约定</span><p>关键结论保留来源，进入评审后再沉淀。</p></section>
           <section class="base-preview-section"><span>关键决策</span><p>任务创建前必须确认快照；阻塞级约束自动带入。</p></section>
@@ -162,6 +156,16 @@
 
         <template v-else>
           <header class="panel-head"><div><strong>团队计划</strong><small>{{ project.phase === 'planned' ? '任务已全部确认并挂载到项目' : `已确认 ${confirmedTasks.length} 项任务` }}</small></div><button type="button" class="panel-close" aria-label="关闭侧边抽屉" title="关闭" @click="closeSidePanel">×</button></header>
+          <section class="team-dashboard" aria-label="本周团队计划概览">
+            <div class="team-dashboard-head"><div><strong>本周团队计划</strong><span>8/18—8/24</span></div><button type="button" class="dashboard-more" aria-label="更多团队计划操作">···</button></div>
+            <div class="dashboard-kpis">
+              <div><span>任务</span><strong>18</strong></div>
+              <div><span>完成度</span><strong>67%</strong></div>
+              <div><span>按时交付</span><strong>83%</strong></div>
+            </div>
+            <div class="dashboard-load"><div class="dashboard-section-title"><span>团队负载</span><b>中等</b></div><div class="dashboard-progress"><span style="width: 67%"></span></div><div class="dashboard-load-meta"><span>67%</span><small>已完成 12 · 进行中 4 · 待开始 2</small></div></div>
+            <div class="dashboard-attention"><div class="dashboard-section-title"><span>需要关注</span><b>3</b></div><p><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 17H3L12 3Z"/><path d="M12 9v4M12 16h.01"/></svg><span>2 个任务临近截止</span></p><p><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 17H3L12 3Z"/><path d="M12 9v4M12 16h.01"/></svg><span>1 个任务存在阻塞依赖</span></p></div>
+          </section>
           <div v-if="confirmedTasks.length" class="plan-list">
             <article v-for="task in confirmedTasks" :key="task.id" class="plan-item" :class="{ 'is-expanded': expandedPlanTasks.has(task.id) }">
               <button type="button" class="plan-item-toggle" @click="togglePlanTask(task.id)">
@@ -205,11 +209,15 @@ import { useUIStore } from '@/modules/space/uiStore'
 import { useTodoStore } from '@/modules/todo/store/todoStore'
 import { useTaskBridgeStore } from '@/modules/task-bridge/store'
 import ProjectBaseWorkspace from '@/modules/task-bridge/components/ProjectBaseWorkspace.vue'
+import ownerAvatar from '@/assets/avatar-wang-jingbo.webp'
+import researchAvatar from '@/assets/collaboration/pmo-digital-human-avatar.png'
+import designAvatar from '@/assets/collaboration/tapd-pmo-avatar.png'
 
 const groupStore = useGroupStore()
 const uiStore = useUIStore()
 const todoStore = useTodoStore()
 const bridgeStore = useTaskBridgeStore()
+const memberAvatars = Object.freeze({ owner: ownerAvatar, research: researchAvatar, design: designAvatar })
 const messageText = ref('')
 const activePanel = ref('plan')
 const isEditingAssignments = ref(false)
@@ -386,21 +394,6 @@ function syncPersonalTasks(current) {
   })
 }
 
-function openTodo() {
-  uiStore.activeToolTab = 'todo'
-}
-
-function openPersonalTask() {
-  const task = project.value.tasks.find((item) => item.owner === '我')
-  if (!task) return
-  uiStore.setActiveNavigation('solo-team', `task-bridge:${project.value.id}:${task.id}`)
-}
-
-function simulateComplete() {
-  bridgeStore.completePersonalTask(conversationId.value, 'research')
-  flash('已模拟完成调研报告，回填草稿等待确认')
-}
-
 function publishBackfill() {
   const current = bridgeStore.publishBackfill(conversationId.value)
   if (!current) return
@@ -438,8 +431,12 @@ function publishEcho() {
 .bridge-next-step { position:absolute; z-index:4; bottom:136px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid #f0dbcf; border-radius:10px; background:#fff; box-shadow:0 10px 24px rgba(47,53,71,.15); color:#647080; font-size:12px; white-space:nowrap; }.bridge-next-step button{border:0;border-radius:6px;padding:6px 9px;background:#ff621f;color:#fff;cursor:pointer;font-size:12px}.bridge-next-step .text-link{background:transparent;color:#596c98;text-decoration:underline;padding:4px}.bridge-toast{position:absolute;z-index:8;top:62px;left:50%;transform:translateX(-50%);padding:9px 14px;border-radius:8px;background:#2f3547;color:#fff;font-size:12px;box-shadow:0 8px 20px rgba(47,53,71,.2)}.bridge-toast-enter-active,.bridge-toast-leave-active{transition:opacity .18s,transform .18s}.bridge-toast-enter-from,.bridge-toast-leave-to{opacity:0;transform:translate(-50%,-6px)}
 .snapshot-source{display:block;margin-top:8px;color:#a4aab5;font-size:10px;line-height:1.35;letter-spacing:.01em}
 .base-preview-section{padding:13px 0;border-bottom:1px solid #eef0f3}.base-preview-section span{display:block;margin-bottom:5px;color:#8e97a5;font-size:11px}.base-preview-section p{margin:0;color:#535d6c;font-size:12px;line-height:1.55}
+.base-member-stack{display:flex!important;align-items:center;min-height:32px;margin:2px 0 10px!important;padding-left:4px}.base-member-stack>span{display:block!important;width:30px;height:30px;margin:0 0 0 -6px!important;padding:2px;border:2px solid #fff;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(47,53,71,.12)}.base-member-stack>span:first-child{margin-left:0!important}.base-member-stack img{display:block;width:100%;height:100%;border-radius:50%;object-fit:cover}
+.base-member-add{display:grid!important;place-items:center;width:30px;height:30px;margin-left:6px;padding:0;border:1px dashed #cbd2dd;border-radius:50%;background:#fff;color:#8993a3;font-size:19px;font-weight:400;line-height:1;cursor:pointer;transition:border-color .15s,color .15s,background .15s}.base-member-add:hover{border-color:#ff9a76;background:#fff8f4;color:#ff621f}
+.team-dashboard{margin:12px 0 14px;padding:13px;border:1px solid #edf0f4;border-radius:12px;background:linear-gradient(145deg,#fff 0%,#fcfcfd 100%);box-shadow:0 5px 16px rgba(47,53,71,.05)}.team-dashboard-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:11px}.team-dashboard-head div{display:flex;align-items:baseline;gap:7px}.team-dashboard-head strong{color:#303746;font-size:13px}.team-dashboard-head span{color:#9299a6;font-size:10px}.dashboard-more{width:28px;height:24px;margin-top:-3px;padding:0;border:0;border-radius:6px;background:transparent;color:#8d96a5;font-size:16px;line-height:1;letter-spacing:1px;cursor:pointer}.dashboard-more:hover{background:#f2f4f7;color:#3b4453}.dashboard-kpis{display:grid;grid-template-columns:repeat(3,1fr);overflow:hidden;border:1px solid #edf0f4;border-radius:9px;background:#fff}.dashboard-kpis div{display:flex;flex-direction:column;gap:4px;padding:9px 8px;border-right:1px solid #edf0f4}.dashboard-kpis div:last-child{border-right:0}.dashboard-kpis span,.dashboard-section-title span{color:#8d96a5;font-size:10px}.dashboard-kpis strong{color:#303746;font-size:17px;font-weight:650;letter-spacing:-.02em}.dashboard-load{padding:12px 0 10px;border-bottom:1px solid #edf0f4}.dashboard-section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.dashboard-section-title b{color:#596273;font-size:10px;font-weight:600}.dashboard-progress{height:7px;overflow:hidden;border-radius:999px;background:#eef1f4}.dashboard-progress span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#ff9a73,#ff621f)}.dashboard-load-meta{display:flex;align-items:center;justify-content:space-between;margin-top:6px}.dashboard-load-meta span{color:#ff621f;font-size:11px;font-weight:650}.dashboard-load-meta small{color:#9299a6;font-size:9px}.dashboard-attention{padding:11px 0 8px;border-bottom:1px solid #edf0f4}.dashboard-attention .dashboard-section-title{margin-bottom:6px}.dashboard-attention .dashboard-section-title b{min-width:17px;height:17px;display:inline-grid;place-items:center;border-radius:50%;background:#fff0e9;color:#e66a3c;font-size:10px}.dashboard-attention p{display:flex;align-items:center;gap:6px;margin:6px 0;color:#596273;font-size:10px;line-height:1.35}.dashboard-attention svg{width:13px;height:13px;flex:0 0 13px;fill:none;stroke:#e78b60;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.dashboard-members{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:11px}.dashboard-members div{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:7px 8px;border-radius:7px;background:#f7f8fa}.dashboard-members strong{color:#303746;font-size:11px}.dashboard-members span{color:#8d96a5;font-size:9px;white-space:nowrap}
 .base-mini-people{display:flex;flex-direction:column;gap:6px}.base-mini-people b{display:flex;justify-content:space-between;gap:8px;color:#4c5565;font-size:12px;font-weight:600}.base-mini-people small{color:#969daa;font-size:10px;font-weight:400;text-align:right}
 .base-detail-action{display:inline-flex;align-items:center;gap:5px;color:#64748b!important}.base-detail-action:hover{color:#ff621f!important}
+.dashboard-attention{border-bottom:0}
 @media (max-width: 960px) { .bridge-panel{position:absolute;top:0;right:0;bottom:0;left:auto;z-index:5;width:min(360px,86%);max-width:100%;margin-left:0;box-shadow:-12px 0 28px rgba(47,53,71,.14)}.conversation-scroll{padding-left:24px;padding-right:24px}.bridge-next-step{max-width:calc(100% - 32px);white-space:normal;flex-wrap:wrap} }
 .panel-head .panel-head-actions { display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-start; gap: 8px; flex: 0 0 auto; }
 .context-note span { display: block; margin-top: 3px; }
