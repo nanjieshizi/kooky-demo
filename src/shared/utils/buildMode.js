@@ -14,4 +14,6 @@
  */
 
 export const IS_DEV = import.meta.env.DEV
-export const IS_DEMO = IS_DEV || import.meta.env.VITE_DEMO === 'true'
+// 当前仓库是纯前端演示版，任何部署环境都直接使用 mock 数据与演示交互，
+// 不再进入原产品的登录、IM 和后端初始化流程。
+export const IS_DEMO = true
