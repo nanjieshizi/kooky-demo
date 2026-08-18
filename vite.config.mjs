@@ -11,13 +11,15 @@ const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const isDevlocal = mode === 'devlocal'
+  const isVercel = env.VERCEL === '1' || env.VERCEL === 'true'
   const localGatewayUrl = isDevlocal
     ? String(env.VITE_LOCAL_GATEWAY_URL || 'http://localhost:8001').replace(/\/$/, '')
     : ''
 
   return {
   plugins: [UnoCSS(), vue()],
-  base: '/super-assistant',
+  // 本地演示保留现有路径；Vercel 从域名根路径提供应用。
+  base: isVercel ? '/' : '/super-assistant/',
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
     'import.meta.env.VITE_LOCAL_GATEWAY_URL': JSON.stringify(localGatewayUrl),
