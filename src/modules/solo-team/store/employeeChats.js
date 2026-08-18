@@ -22,7 +22,6 @@ import {
 import { employeeRunApi } from '../services/employeeRunApi'
 import { fetchEmployeeModels, fetchEmployeeChatModels, updateEmployeeModelSelection } from '../services/employeeModelApi'
 import { useUIStore } from '@/modules/space/uiStore'
-import { useGroupStore } from '@/modules/group/store'
 import { ElMessage } from 'element-plus'
 import { soloTeamApiErrorMessage } from '../utils/apiErrorMessage'
 import { digitalHumanApi } from '@/modules/private/services/digitalHumanApi'
@@ -871,6 +870,7 @@ export const employeeChatsActions = {
         } else {
           this.activateRoomChat()
           if (ui.activePrimaryNav === 'collaboration') {
+            const { useGroupStore } = await import('@/modules/group/store')
             const groupStore = useGroupStore()
             const nextConversationId = groupStore.groupConversations[0]?.conversationId ?? null
             ui.setActiveNavigation('collaboration', nextConversationId)
@@ -914,6 +914,7 @@ export const employeeChatsActions = {
         } else {
           this.activateRoomChat()
           if (ui.activePrimaryNav === 'collaboration') {
+            const { useGroupStore } = await import('@/modules/group/store')
             const groupStore = useGroupStore()
             const nextConversationId = groupStore.groupConversations[0]?.conversationId ?? null
             ui.setActiveNavigation('collaboration', nextConversationId)

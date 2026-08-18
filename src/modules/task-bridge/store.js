@@ -62,6 +62,7 @@ function makeProject(conversationId, name = '项目一', options = {}) {
     id: projectKey(conversationId),
     name: projectName,
     isDemoProject: Boolean(options.isDemoProject),
+    isPersonalOnly: Boolean(options.isPersonalOnly),
     // Demo 首屏从「讨论」开始，由发送按钮逐步推进预设内容与任务快照。
     phase: 'discussion',
     activeTaskId: null,
@@ -99,6 +100,46 @@ export const useTaskBridgeStore = defineStore('taskBridge', {
       if (!this.projects[key]) this.projects[key] = makeProject(key, name)
       if (name && !this.projects[key].name) this.projects[key].name = String(name)
       return this.projects[key]
+    },
+
+    createPersonalTask(payload = {}) {
+      const title = String(payload.title || '').trim()
+      if (!title) return null
+      const projectId = String(payload.projectId || '').trim()
+      const project = projectId
+        ? this.ensureProject(projectId)
+        : this.createProject(`personal-task-${Date.now()}`, '个人任务', { isPersonalOnly: true })
+      if (!project) return null
+      const taskId = `personal-${Date.now()}`
+      const task = {
+        id: taskId,
+        title,
+        type: String(payload.type || '研究'),
+        priority: String(payload.priority || '中'),
+        goal: String(payload.goal || '').trim(),
+        owner: '我',
+        agent: String(payload.agent || '团队助理'),
+        deadline: String(payload.dueAt || '未设置'),
+        deliverable: String(payload.deliverable || '').trim(),
+        acceptance: String(payload.acceptance || '').trim(),
+        scope: String(payload.scope || '').trim(),
+        confirmed: true,
+        submitted: false,
+        status: 'in_progress',
+        messages: [
+          { id: `task-created-${taskId}`, type: 'system', text: project.isPersonalOnly ? '已创建个人任务对话' : `已从「${project.name}」创建任务对话` },
+          { id: `task-context-${taskId}`, type: 'assistant', text: project.isPersonalOnly ? `请围绕「${title}」推进，完成后可在个人任务中回填产物。` : `任务已挂载到项目。请围绕「${title}」推进，关键结论会在确认后回填项目。` },
+        ],
+        backfillDemoStep: 0,
+        backfill: null,
+      }
+      project.tasks.push(task)
+      project.phase = project.tasks.every((item) => item.confirmed) ? 'planned' : project.phase
+      project.discussion.push(
+        { id: `personal-task-user-${taskId}`, type: 'user', text: project.isPersonalOnly ? `我创建了个人任务「${title}」。` : `我创建了任务「${title}」，并将其挂载到当前项目。` },
+        { id: `personal-task-assistant-${taskId}`, type: 'assistant', text: project.isPersonalOnly ? '个人任务已创建，对话已准备就绪。' : '任务已创建并加入团队计划，个人任务对话已准备就绪。' },
+      )
+      return { project, task }
     },
 
     createProject(conversationId, name, options = {}) {

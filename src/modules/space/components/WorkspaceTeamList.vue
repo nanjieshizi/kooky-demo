@@ -356,7 +356,7 @@ const expandedCategories = ref({
   digitalHuman: true, // 数字人默认展开
 })
 
-const taskBridgeProjects = computed(() => Object.values(taskBridgeStore.projects))
+const taskBridgeProjects = computed(() => Object.values(taskBridgeStore.projects).filter((project) => !project.isPersonalOnly && !String(project.id).startsWith('personal-task-')))
 
 const AVATAR_COLORS = ['#7569e8', '#f39a62', '#5da7a4', '#d8799d', '#5d8bc9']
 

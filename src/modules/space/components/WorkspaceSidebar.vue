@@ -130,6 +130,11 @@
       @close="showCreateSoloTeamDialog = false"
       @created="handleSoloTeamCreated"
     />
+    <PersonalTaskCreateModal
+      :visible="showPersonalTaskCreateModal"
+      @close="showPersonalTaskCreateModal = false"
+      @created="handlePersonalTaskCreated"
+    />
     <CreateDigitalEmployeeDialog
       :visible="showCreateDigitalEmployeeDialog"
       @close="showCreateDigitalEmployeeDialog = false"
@@ -154,6 +159,7 @@ import CreateProjectBaseModal from '@/modules/group/components/CreateProjectBase
 import MarketSubmenu from '@/modules/space/components/MarketSubmenu.vue'
 import ContactsSubmenu from '@/modules/contacts/components/ContactsSubmenu.vue'
 import CreateSoloTeamDialog from '@/modules/solo-team/components/CreateSoloTeamDialog.vue'
+import PersonalTaskCreateModal from '@/modules/task-bridge/components/PersonalTaskCreateModal.vue'
 import { createOnePersonTeam } from '@/modules/solo-team/service'
 import CreateDigitalEmployeeDialog from '@/modules/solo-team/components/CreateDigitalEmployeeDialog.vue'
 import { useUserStore } from '@/modules/auth/store'
@@ -201,6 +207,7 @@ const personalTaskChats = computed(() => taskBridgeStore.personalTasks)
 
 const showCreateTeamDialog = ref(false)
 const showCreateSoloTeamDialog = ref(false)
+const showPersonalTaskCreateModal = ref(false)
 const creatingSoloTeamSession = ref(false)
 // 合并后团队固定，「新建会话」直接建一条会话，协调者=分身(默认 agent 9001)
 const SOLO_TEAM_COORDINATOR_ID = 9001
@@ -426,7 +433,7 @@ async function onPrimaryNavClick(item) {
       return
     }
     if (IS_DEMO) {
-      uiStore.collapseSidebar()
+      uiStore.expandSidebar()
       uiStore.setActiveNavigation('solo-team', null)
       return
     }
@@ -619,7 +626,7 @@ function onAddTeamClick() {
   uiStore.expandSidebar()
 
   if (uiStore.activePrimaryNav === 'solo-team') {
-    showCreateSoloTeamDialog.value = true
+    showPersonalTaskCreateModal.value = true
     return
   }
 
@@ -633,6 +640,15 @@ function onAddTeamClick() {
     : 'collaboration'
   uiStore.setActiveNavigation(collaborationNavKey, uiStore.activeSecondaryNav)
   showCreateTeamDialog.value = true
+}
+
+function handlePersonalTaskCreated(result = {}) {
+  showPersonalTaskCreateModal.value = false
+  const projectId = result.project?.id
+  const taskId = result.task?.id
+  if (!projectId || !taskId) return
+  uiStore.expandSidebar()
+  uiStore.setActiveNavigation('solo-team', `task-bridge:${projectId}:${taskId}`)
 }
 
 function handleTaskBridgeProjectCreated({ conversationId } = {}) {
