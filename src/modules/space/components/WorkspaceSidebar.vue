@@ -84,20 +84,22 @@
         <!-- 个人页不恢复旧的助手/历史会话；只展示任务桥新生成的个人任务聊天。 -->
         <div v-if="uiStore.activePrimaryNav === 'solo-team' && personalTaskChats.length" class="personal-task-list">
           <p class="personal-task-list-title">我的任务</p>
-          <button
-            v-for="item in personalTaskChats"
-            :key="`${item.projectId}:${item.task.id}`"
-            type="button"
-            class="personal-task-entry"
-            :class="{ active: uiStore.activeSecondaryNav === personalTaskKey(item) }"
-            @click="openPersonalTaskChat(item)"
-          >
-            <span class="personal-task-entry-icon">✓</span>
-            <span class="personal-task-entry-copy">
-              <b>{{ item.task.title }}</b>
-              <small>{{ item.projectName }} · {{ item.task.status === 'done' ? '已完成' : '执行中' }}</small>
-            </span>
-          </button>
+          <TransitionGroup name="personal-task" tag="div" class="personal-task-entries" appear>
+            <button
+              v-for="item in personalTaskChats"
+              :key="`${item.projectId}:${item.task.id}`"
+              type="button"
+              class="personal-task-entry"
+              :class="{ active: uiStore.activeSecondaryNav === personalTaskKey(item) }"
+              @click="openPersonalTaskChat(item)"
+            >
+              <span class="personal-task-entry-icon">✓</span>
+              <span class="personal-task-entry-copy">
+                <b>{{ item.task.title }}</b>
+                <small>{{ item.projectName }} · {{ item.task.status === 'done' ? '已完成' : '执行中' }}</small>
+              </span>
+            </button>
+          </TransitionGroup>
         </div>
         <DeerflowThreadList v-if="uiStore.activePrimaryNav === 'deerflow'" />
 
@@ -176,6 +178,7 @@ import WorkspaceTeamList from '@/modules/space/components/WorkspaceTeamList.vue'
 import { useDeerflowChatStore } from '@/modules/deerflow-chat/store'
 import DeerflowThreadList from '@/modules/deerflow-chat/components/DeerflowThreadList.vue'
 import { useTaskBridgeStore } from '@/modules/task-bridge/store'
+import { IS_DEMO } from '@/shared/utils/buildMode'
 import digitalEmployeeIcon from '@/assets/soloTeam/add_agent.png'
 import soloTeamCreateIcon from '@/assets/soloTeam/add_team.png'
 
@@ -420,6 +423,11 @@ async function onPrimaryNavClick(item) {
     if (personalTask) {
       uiStore.expandSidebar()
       openPersonalTaskChat(personalTask)
+      return
+    }
+    if (IS_DEMO) {
+      uiStore.collapseSidebar()
+      uiStore.setActiveNavigation('solo-team', null)
       return
     }
     await soloTeamStore.loadEmployeeItems({ force: true })
@@ -874,6 +882,7 @@ function onCliAvatarClick() {
   border: none;
   background: transparent;
   cursor: pointer;
+  transition: color .18s ease;
 }
 
 .primary-nav-icon-shell {
@@ -946,6 +955,27 @@ function onCliAvatarClick() {
   height: 50px;
 }
 
+.primary-nav-item:active .primary-nav-icon-inner,
+.personal-task-entry:active {
+  transform: scale(.96);
+}
+.primary-nav-icon-inner,
+.personal-task-entry {
+  transition: transform .18s ease, background .2s ease, box-shadow .2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary-nav-item,
+  .primary-nav-icon-inner,
+  .personal-task-entry,
+  .personal-task-enter-active,
+  .personal-task-leave-active,
+  .personal-task-move,
+  .personal-task-appear-active { transition: none; }
+  .personal-task-enter-active .personal-task-entry-icon,
+  .personal-task-appear-active .personal-task-entry-icon { animation: none; }
+}
+
 .primary-nav-label {
   font-size: 13px;
   line-height: 1.3;
@@ -1014,6 +1044,19 @@ function onCliAvatarClick() {
   color: #969daa;
   font-size: 12px;
 }
+
+.personal-task-entries { display: flex; flex-direction: column; gap: 2px; }
+.personal-task-enter-active,
+.personal-task-leave-active,
+.personal-task-move,
+.personal-task-appear-active { transition: opacity .42s ease, transform .42s cubic-bezier(.16, 1, .3, 1), filter .42s ease, box-shadow .42s ease; }
+.personal-task-enter-from,
+.personal-task-appear-from { opacity: 0; transform: translateY(22px) scale(.92) rotateX(-5deg); filter: blur(4px); box-shadow: 0 14px 28px rgba(255,98,31,.18); }
+.personal-task-enter-active .personal-task-entry-icon,
+.personal-task-appear-active .personal-task-entry-icon { animation: personal-task-icon-pop .52s cubic-bezier(.16, 1, .3, 1) both; }
+.personal-task-leave-to { opacity: 0; transform: translateY(-6px) scale(.98); }
+.personal-task-leave-active { position: absolute; width: calc(100% - 28px); }
+@keyframes personal-task-icon-pop { 0% { transform: scale(.55) rotate(-18deg); box-shadow: 0 0 0 0 rgba(255,98,31,.34); } 58% { transform: scale(1.16) rotate(4deg); box-shadow: 0 0 0 7px rgba(255,98,31,0); } 100% { transform: scale(1) rotate(0); box-shadow: none; } }
 
 .personal-task-entry {
   width: 100%;

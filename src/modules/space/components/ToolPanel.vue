@@ -72,10 +72,12 @@ const uiStore = useUIStore()
   border-radius: 10px;
   background: transparent;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.16s ease;
   padding: 0;
   position: relative;
 }
+
+.tool-tab:active { transform: scale(.96); }
 
 .tool-tab.active::before {
   content: '';
@@ -104,6 +106,10 @@ const uiStore = useUIStore()
 .tab-icon--asset {
   width: 20px;
   height: 20px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-tab { transition: none; }
 }
 
 .tab-label {

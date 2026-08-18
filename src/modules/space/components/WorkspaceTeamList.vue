@@ -23,7 +23,7 @@
               <span class="submenu-item-preview">{{ taskBridgeProjectPreview(project) }}</span>
             </span>
           </button>
-          <div v-if="taskBridgePersonalTasks(project).length" class="submenu-project-tasks">
+          <TransitionGroup v-if="taskBridgePersonalTasks(project).length" name="project-task" tag="div" class="submenu-project-tasks" appear>
             <button
               v-for="task in taskBridgePersonalTasks(project)"
               :key="`${project.id}-${task.id}`"
@@ -34,7 +34,7 @@
               <span class="submenu-project-task-title">{{ task.title }}</span>
               <span class="submenu-project-task-meta">我的任务</span>
             </button>
-          </div>
+          </TransitionGroup>
         </template>
       </div>
     </div>
@@ -1015,6 +1015,15 @@ async function onSpaceClick(spaceId) {
   border-left: 1px solid #e5e8ef;
 }
 
+.project-task-enter-active,
+.project-task-appear-active,
+.project-task-leave-active,
+.project-task-move { transition: opacity .46s ease, transform .46s cubic-bezier(.16, 1, .3, 1); }
+.project-task-enter-from,
+.project-task-appear-from { opacity: 0; transform: translateY(-18px) scale(.9); }
+.project-task-leave-to { opacity: 0; transform: translateX(12px) scale(.96); }
+.project-task-leave-active { position: absolute; width: calc(100% - 20px); }
+
 .submenu-project-task {
   display: flex;
   align-items: center;
@@ -1051,6 +1060,13 @@ async function onSpaceClick(spaceId) {
   flex: 0 0 auto;
   color: #5d6474;
   font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-task-enter-active,
+  .project-task-appear-active,
+  .project-task-leave-active,
+  .project-task-move { transition: none; }
 }
 
 .submenu-project-icon {

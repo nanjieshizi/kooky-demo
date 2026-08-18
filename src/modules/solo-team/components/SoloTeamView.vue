@@ -41,11 +41,19 @@
 
     </template>
 
-    <!-- 无团队数据：展示创建引导页 -->
-    <CreateSoloTeamView
-      v-else
-      @create="showCreateDialog = true"
-    />
+    <!-- 无任务时展示普通对话空白页，不再显示封面式创建引导 -->
+    <section v-else class="solo-empty-chat" aria-label="个人对话">
+      <header class="solo-empty-chat__header"><strong>个人</strong></header>
+      <div class="solo-empty-chat__body"></div>
+      <form class="solo-empty-chat__composer" @submit.prevent>
+        <textarea rows="2" readonly placeholder="你可以输入任何你想做的事情"></textarea>
+        <div class="solo-empty-chat__footer">
+          <div><button type="button" aria-label="添加附件">⌕</button><button type="button" aria-label="技能">✣</button></div>
+          <div><button type="button" class="solo-empty-chat__pill">♧ 思考⌄</button><button type="button" class="solo-empty-chat__pill">✳ Claude Opus 4.5⌄</button><button type="submit" aria-label="发送">➤</button></div>
+        </div>
+      </form>
+      <p class="solo-empty-chat__disclaimer">对话内容将由大模型处理，涉密及个人隐私信息请谨慎输入</p>
+    </section>
 
     <!-- 创建数字员工弹框 -->
     <CreateDigitalEmployeeDialog
@@ -61,7 +69,6 @@ import { ref, computed, watch, provide } from 'vue'
 import { useSoloTeamStore } from '../store'
 import { useUIStore } from '@/modules/space/uiStore'
 import { EMPLOYEE_CHAT_SESSION_STORE_KEY, SOLO_TEAM_HEADER_REF_KEY } from '@/shared/constants/injectionKeys'
-import CreateSoloTeamView from './CreateSoloTeamView.vue'
 import CreateDigitalEmployeeDialog from './CreateDigitalEmployeeDialog.vue'
 import OnePersonTeamChatPanel from './OnePersonTeamChatPanel.vue'
 import EmployeeChatPanel from './EmployeeChatPanel.vue'
@@ -202,6 +209,45 @@ function handleOnePersonDissolved() {
   flex: 1;
   min-width: 0;
   min-height: 0;
+}
+
+.solo-empty-chat {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.solo-empty-chat__header {
+  height: 54px;
+  flex: 0 0 54px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid #eef0f3;
+  color: #303746;
+  font-size: 15px;
+}
+
+.solo-empty-chat__body { flex: 1; min-height: 0; }
+.solo-empty-chat__composer { margin: 0 32px; padding: 11px 14px 9px; border: 1.5px solid #dce2eb; border-radius: 15px; background: #fff; box-shadow: 0 8px 22px rgba(82,98,122,.10); }
+.solo-empty-chat__composer textarea { display: block; width: 100%; min-height: 38px; box-sizing: border-box; resize: none; border: 0; outline: 0; background: transparent; color: #303746; font: 13px/1.55 PingFang SC, sans-serif; }
+.solo-empty-chat__composer textarea::placeholder { color: #a1a8b4; }
+.solo-empty-chat__footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 7px; }
+.solo-empty-chat__footer > div { display: flex; align-items: center; gap: 7px; }
+.solo-empty-chat__footer button { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 8px; border: 1px solid #e0e5ee; border-radius: 8px; background: #fff; color: #647084; cursor: pointer; transition: transform .16s ease, background .18s ease; }
+.solo-empty-chat__footer button:hover { background: #f5f7fb; }
+.solo-empty-chat__footer button:active { transform: scale(.96); }
+.solo-empty-chat__footer .solo-empty-chat__pill { border: 0; background: #f5f7fb; color: #344055; font-size: 12px; }
+.solo-empty-chat__footer > div:last-child button:last-child { width: 32px; border: 0; border-radius: 50%; background: #aab1bd; color: #fff; font-size: 15px; }
+.solo-empty-chat__disclaimer { margin: 8px 0 20px; color: #a6acb9; text-align: center; font-size: 11px; line-height: 16px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .solo-empty-chat__footer button { transition: none; }
 }
 
 .one-person-roster-shell {
