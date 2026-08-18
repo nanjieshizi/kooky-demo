@@ -3,7 +3,6 @@
     <header class="bridge-header">
       <div class="bridge-title">
         <span>{{ isTaskConversation ? activeTask.title : project.name }}</span>
-        <span class="bridge-status">{{ isTaskConversation ? project.name : '项目底座' }}</span>
       </div>
       <div class="bridge-actions">
         <button type="button" :class="{ active: activePanel === 'plan' }" @click="activePanel = 'plan'">团队计划<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 5.5v16M8 7h8M8 11h8"/></svg></button>
@@ -422,7 +421,7 @@ function publishEcho() {
 .bridge-shell::before { content: ''; position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(circle, rgba(255,151,133,.26) 1.1px, transparent 1.3px); background-size: 18px 18px; -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 62%); mask-image: linear-gradient(to bottom, #000 0%, transparent 62%); }
 .bridge-header,.bridge-body,.bridge-next-step { position: relative; z-index: 1; }
 .bridge-header { min-height: 50px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(229,230,235,.9); }
-.bridge-title { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 650; }.bridge-status { padding: 3px 8px; border-radius: 999px; background: #fff0e9; color: #ff621f; font-size: 11px; font-weight: 600; }
+.bridge-title { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 650; }
 .bridge-actions { display: flex; gap: 8px; }.bridge-actions button { display:inline-flex; align-items:center; gap:5px; border: 0; border-radius: 7px; padding: 6px 9px; background: transparent; color: #697184; cursor: pointer; font-size: 12px; }.bridge-actions button svg{flex:0 0 auto;opacity:.8}.bridge-actions button:hover,.bridge-actions button.active { background: #f4f5f7; color: #2f3547; }
 .bridge-body { position:relative; flex: 1; min-height: 0; min-width:0; display: flex; overflow:hidden; }.bridge-conversation { position:relative; flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }.conversation-scroll { flex: 1; min-height: 0; overflow: auto; padding: 26px min(9vw,120px); }
 .system-event { margin: 0 auto 12px; text-align: center; color: #a0a6b2; font-size: 12px; }.bridge-message { display: flex; gap: 10px; max-width: 720px; margin: 18px auto; }.bridge-message.is-user { flex-direction: row-reverse; }.message-avatar { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex: 0 0 auto; background: #eee8ff; color: #7257d9; font-size: 12px; font-weight: 700; }.is-user .message-avatar { background: #ffede5; color: #ee6c37; }.message-content { min-width: 0; }.message-content strong { font-size: 13px; }.message-content p { margin: 5px 0 0; padding: 10px 12px; border-radius: 4px 12px 12px 12px; background: rgba(255,255,255,.9); line-height: 1.65; font-size: 13px; box-shadow: 0 1px 5px rgba(47,53,71,.05); white-space: pre-wrap; }.is-user .message-content p { border-radius: 12px 4px 12px 12px; background: #fff0e9; }

@@ -6,7 +6,7 @@
         :class="{ active: uiStore.activeToolTab === 'file' && !uiStore.fileTreeCollapsed }"
         @click="uiStore.setActiveToolTab('file')"
       >
-        <img :src="rightFileIcon" class="tab-icon" alt="文件" />
+        <img class="tab-icon tab-icon--asset" :src="toolFileIcon" alt="" aria-hidden="true" />
         <span class="tab-label">文件</span>
       </button>
       <button
@@ -14,7 +14,7 @@
         :class="{ active: uiStore.activeToolTab === 'todo' }"
         @click="uiStore.setActiveToolTab('todo')"
       >
-        <span class="tab-icon tab-icon--emoji">📋</span>
+        <img class="tab-icon tab-icon--asset" :src="toolTodoIcon" alt="" aria-hidden="true" />
         <span class="tab-label">待办</span>
       </button>
       <!-- 定时任务：全局可见（PRD：全局公共功能）-->
@@ -23,7 +23,7 @@
         :class="{ active: uiStore.activeToolTab === 'schedule' }"
         @click="uiStore.setActiveToolTab('schedule')"
       >
-        <span class="tab-icon tab-icon--emoji">⏰</span>
+        <img class="tab-icon tab-icon--asset" :src="toolScheduleIcon" alt="" aria-hidden="true" />
         <span class="tab-label">定时</span>
       </button>
     </div>
@@ -32,7 +32,9 @@
 
 <script setup>
 import { useUIStore } from '@/modules/space/uiStore'
-import rightFileIcon from '@/assets/home/rightFile.png'
+import toolFileIcon from '@/assets/tool-file.svg'
+import toolTodoIcon from '@/assets/tool-todo.svg'
+import toolScheduleIcon from '@/assets/tool-schedule.svg'
 
 const uiStore = useUIStore()
 </script>
@@ -99,15 +101,9 @@ const uiStore = useUIStore()
   margin-bottom: 8px;
 }
 
-.tab-icon--emoji {
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  line-height: 1;
-  margin-bottom: 6px;
+.tab-icon--asset {
+  width: 20px;
+  height: 20px;
 }
 
 .tab-label {

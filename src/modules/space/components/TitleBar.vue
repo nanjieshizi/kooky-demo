@@ -1,8 +1,8 @@
 <template>
   <div class="title-bar" :class="{ 'is-mac': isMac }">
     <!-- 左侧：logo -->
-    <div class="title-bar-left" @mouseenter="isLogoHovered = true" @mouseleave="isLogoHovered = false">
-      <img :src="isLogoHovered ? logoGif : logoSvg" class="title-logo" alt="Kooky" />
+    <div class="title-bar-left">
+      <img :src="logoSvg" class="title-logo" alt="Kooky" />
     </div>
 
     <!-- 中间：搜索框 + 拖拽区域 -->
@@ -137,8 +137,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
-import logoSvg from '@/assets/navigation/logo.png'
-import logoGif from '@/assets/navigation/logoGif.gif'
+import logoSvg from '@/assets/navigation/logo-custom.png'
 import topAvatar from '@/assets/avatar-wang-jingbo.webp'
 import UpdateNotification from './UpdateNotification.vue'
 import UpdateNotifier from '@/modules/updater/components/UpdateNotifier.vue'
@@ -168,7 +167,6 @@ const displayUserName = '王靖博'
 const isMac = window.electronAPI?.platform === 'darwin'
 // const isMac = navigator.platform.includes('Mac') ? true : false
 
-const isLogoHovered = ref(false)
 const titleSearchInputRef = ref(null)
 const searchBoxRef = ref(null)
 const teleportedStyle = ref({ top: '14px', left: '50%', transform: 'translateX(-50%)' })
@@ -609,9 +607,11 @@ async function handleCommand(cmd) {
 }
 
 .title-logo {
-  height: 48px;
-  width: 124px;
+  height: 64px;
+  width: 150px;
   display: block;
+  object-fit: contain;
+  filter: contrast(1.12);
 }
 
 /* 顶栏问题反馈入口 */
