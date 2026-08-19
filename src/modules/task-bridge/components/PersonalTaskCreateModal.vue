@@ -82,6 +82,7 @@ const filteredChats = computed(() => contextChats.value.filter((chat) => {
   const matchesDate = !chatDate.value || chat.date === chatDate.value
   return matchesQuery && matchesSpeaker && matchesDate
 }))
+const selectedChats = computed(() => contextChats.value.filter((chat) => selectedChatIds.value.includes(chat.id)))
 const checkItems = computed(() => [
   { label: '任务标题', status: form.title ? 'passed' : 'blocked', message: form.title ? '已填写' : '请补充任务标题' },
   { label: '任务目标', status: form.goal ? 'passed' : 'blocked', message: form.goal ? '已填写' : '请补充一句话目标' },
@@ -107,7 +108,7 @@ function changeProject() { showContextOptions.value = false; showBaseDetails.val
 function removeProject() { form.projectId = ''; showContextOptions.value = false; showBaseDetails.value = false; selectedChatIds.value = []; ElMessage.success('已移除项目关联 · 可重新选择') }
 function toggleChat(chatId) { selectedChatIds.value = selectedChatIds.value.includes(chatId) ? selectedChatIds.value.filter((id) => id !== chatId) : [...selectedChatIds.value, chatId] }
 function runCheck() { formError.value = ''; if (hasBlocked.value) { formError.value = '请补齐带 * 的必填信息后再创建任务'; return }; createTask() }
-function createTask() { const payload = { ...form, projectBaseVersion: selectedProject.value?.snapshot?.version || null, includedSections: form.projectId ? includedSections.value : [], includedChatIds: form.projectId ? selectedChatIds.value : [] }; const result = taskBridgeStore.createPersonalTask(payload); if (!result) { formError.value = '任务创建失败，请稍后重试'; return }; emit('created', result) }
+function createTask() { const payload = { ...form, projectBaseVersion: selectedProject.value?.snapshot?.version || null, includedSections: form.projectId ? includedSections.value : [], includedChatIds: form.projectId ? selectedChatIds.value : [], contextMessages: form.projectId ? selectedChats.value : [], contextConstraints: form.projectId ? ['交付物必须可访问、可评审，并与任务目标保持一致。', '关键结论保留来源，无法验证的信息需要明确标注。', '发现阻塞依赖时及时同步，不等待任务临近截止才处理。'] : [] }; const result = taskBridgeStore.createPersonalTask(payload); if (!result) { formError.value = '任务创建失败，请稍后重试'; return }; emit('created', result) }
 </script>
 
 <style scoped>

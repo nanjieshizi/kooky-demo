@@ -36,6 +36,12 @@ const TASK_SEED = Object.freeze([
   },
 ])
 
+const DEFAULT_TASK_CONSTRAINTS = Object.freeze([
+  '交付物必须可访问、可评审，并与任务目标保持一致。',
+  '关键结论保留来源，无法验证的信息需要明确标注。',
+  '发现阻塞依赖时及时同步，不等待任务临近截止才处理。',
+])
+
 function projectKey(conversationId) {
   return String(conversationId || '')
 }
@@ -43,6 +49,8 @@ function projectKey(conversationId) {
 function makeTask(task, projectName = '项目一') {
   return {
     ...task,
+    contextMessages: [],
+    contextConstraints: [...DEFAULT_TASK_CONSTRAINTS],
     confirmed: false,
     submitted: false,
     status: 'draft',
@@ -53,6 +61,19 @@ function makeTask(task, projectName = '项目一') {
     backfillDemoStep: 0,
     backfill: null,
   }
+}
+
+function attachTaskContext(task, project) {
+  if (!task || !project) return task
+  const discussion = (project.discussion || []).filter((item) => item.type !== 'system').slice(-6)
+  task.contextMessages = discussion.map((item, index) => ({
+    id: item.id || `task-context-message-${task.id}-${index}`,
+    sender: item.type === 'user' ? '我' : '团队助理',
+    text: String(item.text || item.content || '').trim(),
+    date: item.date || '2026-08-19',
+  })).filter((item) => item.text)
+  task.contextConstraints = [...DEFAULT_TASK_CONSTRAINTS]
+  return task
 }
 
 function makeProject(conversationId, name = '项目一', options = {}) {
@@ -123,6 +144,8 @@ export const useTaskBridgeStore = defineStore('taskBridge', {
         projectBaseVersion: projectId ? Number(payload.projectBaseVersion || project.snapshot.version || 1) : null,
         includedSections: projectId && Array.isArray(payload.includedSections) ? [...payload.includedSections] : [],
         includedChatIds: projectId && Array.isArray(payload.includedChatIds) ? [...payload.includedChatIds] : [],
+        contextMessages: projectId && Array.isArray(payload.contextMessages) ? payload.contextMessages.map((item) => ({ ...item })) : [],
+        contextConstraints: projectId && Array.isArray(payload.contextConstraints) ? [...payload.contextConstraints] : [...DEFAULT_TASK_CONSTRAINTS],
         deadline: String(payload.dueAt || '未设置'),
         deliverable: String(payload.deliverable || '').trim(),
         acceptance: String(payload.acceptance || '').trim(),
@@ -167,7 +190,7 @@ export const useTaskBridgeStore = defineStore('taskBridge', {
         return project
       }
       project.phase = 'draft'
-      project.tasks = TASK_SEED.map(makeTask)
+      project.tasks = TASK_SEED.map((task) => attachTaskContext(makeTask(task, project.name), project))
       project.discussion.push({
         id: `assistant-${Date.now()}`,
         type: 'assistant',
@@ -180,7 +203,7 @@ export const useTaskBridgeStore = defineStore('taskBridge', {
       const project = this.ensureProject(conversationId)
       const nextSeed = TASK_SEED[project?.tasks.length || 0]
       if (!project || !nextSeed) return project
-      project.tasks.push(makeTask(nextSeed, project.name))
+      project.tasks.push(attachTaskContext(makeTask(nextSeed, project.name), project))
       if (project.tasks.length === TASK_SEED.length) project.phase = 'draft'
       return project
     },
@@ -202,6 +225,8 @@ export const useTaskBridgeStore = defineStore('taskBridge', {
       const project = this.ensureProject(conversationId)
       const task = project?.tasks.find((item) => item.id === taskId)
       if (!project || !task || task.confirmed) return null
+      if (!Array.isArray(task.contextMessages)) task.contextMessages = []
+      if (!Array.isArray(task.contextConstraints)) task.contextConstraints = [...DEFAULT_TASK_CONSTRAINTS]
       task.confirmed = true
       task.status = task.owner === '我' ? 'in_progress' : 'planned'
       if (project.tasks.length === TASK_SEED.length && project.tasks.every((item) => item.confirmed)) {

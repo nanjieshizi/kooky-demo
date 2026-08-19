@@ -148,6 +148,22 @@
               <div class="draft-task-fields"><label>协作方<input v-model="pendingTask.agent" /></label><label>截止时间<input v-model="pendingTask.deadline" /></label></div>
               <label>交付物<input v-model="pendingTask.deliverable" /></label>
               <label>验收标准<textarea v-model="pendingTask.acceptance" rows="2"></textarea></label>
+              <section class="snapshot-context-editor">
+                <div class="snapshot-context-editor__head"><div><strong>引用的消息链</strong><small>任务创建时带入的讨论内容，可在确认前调整</small></div><button type="button" class="snapshot-context-add" @click="addContextMessage">+ 消息</button></div>
+                <div v-if="pendingTask.contextMessages.length" class="snapshot-context-messages">
+                  <article v-for="(message, index) in pendingTask.contextMessages" :key="message.id || index" class="snapshot-context-message">
+                    <div class="snapshot-context-message__meta"><span>{{ message.sender || '团队助理' }}</span><small>{{ message.date || '未标注日期' }}</small><button type="button" aria-label="移除引用消息" @click="removeContextMessage(index)">×</button></div>
+                    <textarea v-model="message.text" rows="2" aria-label="引用消息内容"></textarea>
+                  </article>
+                </div>
+                <p v-else class="snapshot-context-empty">未选择具体消息，将仅使用项目底座中的目标与约束。</p>
+              </section>
+              <section class="snapshot-context-editor">
+                <div class="snapshot-context-editor__head"><div><strong>引用的约束</strong><small>这些约束会影响任务执行与验收，可直接修改</small></div><button type="button" class="snapshot-context-add" @click="addContextConstraint">+ 约束</button></div>
+                <div class="snapshot-context-constraints">
+                  <label v-for="(constraint, index) in pendingTask.contextConstraints" :key="index"><span>{{ String(index + 1).padStart(2, '0') }}</span><input v-model="pendingTask.contextConstraints[index]" aria-label="引用约束" /><button type="button" aria-label="移除引用约束" @click="removeContextConstraint(index)">×</button></label>
+                </div>
+              </section>
               <small class="snapshot-source">来源：项目讨论 · 已绑定任务底座 v{{ project.snapshot.version }}</small>
             </template>
           </article>
@@ -269,6 +285,14 @@ function ensureTaskArtifact(task) {
   })
 }
 
+function ensureTaskSnapshotContext(task) {
+  if (!task) return
+  if (!Array.isArray(task.contextMessages)) task.contextMessages = []
+  if (!Array.isArray(task.contextConstraints)) task.contextConstraints = ['交付物必须可访问、可评审，并与任务目标保持一致。', '关键结论保留来源，无法验证的信息需要明确标注。', '发现阻塞依赖时及时同步，不等待任务临近截止才处理。']
+}
+
+watch(pendingTask, ensureTaskSnapshotContext, { immediate: true })
+
 watch(activeTask, ensureTaskArtifact, { immediate: true })
 
 watch(isTaskConversation, (isTask) => {
@@ -287,6 +311,24 @@ watch(() => project.value.phase, (phase) => {
 function closeSidePanel() {
   activePanel.value = null
   isEditingAssignments.value = false
+}
+
+function addContextMessage() {
+  if (!pendingTask.value) return
+  pendingTask.value.contextMessages.push({ id: `edited-context-message-${Date.now()}`, sender: '我', date: '今天', text: '' })
+}
+
+function removeContextMessage(index) {
+  pendingTask.value?.contextMessages.splice(index, 1)
+}
+
+function addContextConstraint() {
+  if (!pendingTask.value) return
+  pendingTask.value.contextConstraints.push('')
+}
+
+function removeContextConstraint(index) {
+  pendingTask.value?.contextConstraints.splice(index, 1)
 }
 
 function togglePlanTask(taskId) {
@@ -463,4 +505,5 @@ function publishEcho() {
 @media (prefers-reduced-motion: reduce){.bridge-panel,.bridge-message,.assignment-card,.task-file-card,.task-backfill-card,.plan-item,.plan-item-detail{animation:none!important}.bridge-actions button,.assignment-actions button,.task-file-card button,.task-backfill-card footer button,.bridge-composer-send,.plan-item-toggle,.plan-item-chevron{transition:none!important}}
  .task-file-card{display:flex;align-items:center;gap:10px;margin-top:9px;padding:12px;border:1px solid #e5e8ed;border-radius:10px;background:#fff}.task-file-icon{display:grid;place-items:center;width:32px;height:38px;border-radius:7px;background:#d9f5f1;color:#1eaaa0;font-weight:800}.task-file-card>div{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}.task-file-card strong{font-size:13px}.task-file-card small{color:#8b93a0;font-size:11px}.task-file-card button{border:0;border-radius:7px;padding:6px 9px;background:#fff0e9;color:#d75c2c;font-size:11px;cursor:pointer}.task-backfill-card{max-width:680px;margin:20px auto;padding:16px;border:1px solid #dce6f4;border-radius:12px;background:#f5f9ff;box-shadow:0 6px 18px rgba(63,95,135,.08)}.task-backfill-card header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.task-backfill-card header div{display:flex;flex-direction:column;gap:4px}.task-backfill-card header span{color:#4f82c7;font-size:11px}.task-backfill-card header strong{font-size:16px}.task-backfill-card header em{padding:4px 7px;border-radius:5px;background:#e6f0ff;color:#4c81c8;font-size:10px;font-style:normal}.task-backfill-intro{color:#64748b;font-size:12px;line-height:1.5}.task-backfill-card label{display:flex;flex-direction:column;gap:5px;margin-top:10px;color:#667085;font-size:11px}.task-backfill-card textarea{box-sizing:border-box;width:100%;resize:vertical;border:1px solid #dce4ef;border-radius:7px;padding:8px;background:#fff;color:#303746;font:12px/1.5 PingFang SC,sans-serif;outline:0}.task-backfill-card textarea:focus{border-color:#7ca8df;box-shadow:0 0 0 3px #eaf2ff}.task-backfill-check{flex-direction:row!important;align-items:center;gap:7px!important}.task-backfill-check input{accent-color:#4f82c7}.task-backfill-card footer{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.task-backfill-card footer button{border:1px solid #dce4ef;border-radius:7px;padding:7px 11px;background:#fff;color:#657080;cursor:pointer;font-size:11px}.task-backfill-card footer .task-backfill-primary{border-color:#4f82c7;background:#4f82c7;color:#fff}
  .task-backfill-artifact-field{gap:6px!important}.task-backfill-artifact{display:flex;align-items:center;gap:8px}.task-backfill-artifact-file{display:flex;align-items:center;gap:8px;flex:1;min-width:0;padding:9px 10px;border:1px solid #dce4ef;border-radius:8px;background:#fff}.task-backfill-artifact-file>div{display:flex;flex-direction:column;gap:3px;min-width:0}.task-backfill-artifact-file strong{overflow:hidden;color:#303746;font-size:12px;text-overflow:ellipsis;white-space:nowrap}.task-backfill-artifact-file small{color:#98a0ad;font-size:10px}.task-backfill-artifact-edit{display:grid;place-items:center;width:30px;height:30px;flex:0 0 30px;padding:0;border:1px solid #dce4ef;border-radius:7px;background:#fff;color:#657080;cursor:pointer}.task-backfill-artifact-edit:hover{border-color:#7ca8df;color:#4f82c7;background:#f7fbff}.task-backfill-artifact-field>input{box-sizing:border-box;width:100%;border:1px solid #dce4ef;border-radius:7px;padding:8px;background:#fff;color:#303746;font:12px/1.5 PingFang SC,sans-serif;outline:0}.task-backfill-artifact-field>input:focus{border-color:#7ca8df;box-shadow:0 0 0 3px #eaf2ff}
+ .snapshot-context-editor{margin-top:14px;padding-top:13px;border-top:1px solid #f0f1f3}.snapshot-context-editor__head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:9px}.snapshot-context-editor__head>div{display:flex;flex-direction:column;gap:3px}.snapshot-context-editor__head strong{color:#4b5565;font-size:12px}.snapshot-context-editor__head small{color:#9aa1ad;font-size:10px;line-height:1.4}.snapshot-context-add{border:0;border-radius:5px;padding:4px 6px;background:#fff3ed;color:#e96c38;font-size:10px;cursor:pointer}.snapshot-context-add:hover{background:#ffe8dc}.snapshot-context-messages{display:flex;flex-direction:column;gap:8px}.snapshot-context-message{padding:8px;border:1px solid #eceef2;border-radius:8px;background:#fafbfc}.snapshot-context-message__meta{display:flex;align-items:center;gap:6px;margin-bottom:5px}.snapshot-context-message__meta span{color:#596273;font-size:10px;font-weight:650}.snapshot-context-message__meta small{flex:1;color:#a0a6b1;font-size:9px}.snapshot-context-message__meta button,.snapshot-context-constraints button{width:20px;height:20px;padding:0;border:0;border-radius:5px;background:transparent;color:#a0a6b1;font-size:16px;line-height:1;cursor:pointer}.snapshot-context-message__meta button:hover,.snapshot-context-constraints button:hover{background:#f1f3f5;color:#4b5565}.snapshot-context-message textarea{box-sizing:border-box;width:100%;resize:vertical;border:1px solid #e5e8ed;border-radius:6px;padding:7px;background:#fff;color:#3b4250;font:11px/1.45 PingFang SC,sans-serif;outline:0}.snapshot-context-message textarea:focus,.snapshot-context-constraints input:focus{border-color:#f09a78;box-shadow:0 0 0 2px rgba(240,154,120,.12)}.snapshot-context-empty{margin:0;padding:10px;border-radius:7px;background:#fafbfc;color:#9aa1ad;font-size:10px;line-height:1.5}.snapshot-context-constraints{display:flex;flex-direction:column;gap:7px}.snapshot-context-constraints label{display:grid;grid-template-columns:22px 1fr 20px;align-items:center;gap:6px;margin:0}.snapshot-context-constraints label>span{display:grid;place-items:center;width:20px;height:20px;border-radius:5px;background:#fff3ed;color:#e96c38;font-size:9px;font-weight:650}.snapshot-context-constraints input{box-sizing:border-box;width:100%;border:1px solid #e5e8ed;border-radius:6px;padding:7px;background:#fff;color:#3b4250;font:11px/1.35 PingFang SC,sans-serif;outline:0}
 </style>
