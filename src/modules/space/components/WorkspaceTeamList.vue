@@ -916,6 +916,10 @@ async function onSpaceClick(spaceId) {
   gap: 8px;
   flex: 0 0 auto;
 
+  // 留出阴影缓冲区，避免选中项目卡片的外阴影被滚动容器裁切。
+  padding: 4px 8px 8px;
+  margin: -4px -8px -8px;
+
   .submenu-category:not(.is-expanded) & {
     display: none;
   }
@@ -1005,6 +1009,10 @@ async function onSpaceClick(spaceId) {
 .submenu-item--project:hover,
 .submenu-item--project.active {
   background: #fff;
+}
+
+.submenu-item--project.active {
+  box-shadow: 0 3px 9px rgba(43, 51, 72, 0.055), 0 1px 3px rgba(43, 51, 72, 0.035);
 }
 
 .submenu-project-tasks {
