@@ -14,7 +14,8 @@
           :key="item.key"
           type="button"
           class="primary-nav-item"
-          :class="{ active: isPrimaryItemActive(item.key) }"
+          :class="{ active: isPrimaryItemActive(item.key), 'is-mounting': isCollaborationNavKey(item.key) && collaborationPulse }"
+          :data-nav-key="item.key"
           @click="onPrimaryNavClick(item)"
         >
           <span class="primary-nav-icon-shell">
@@ -82,9 +83,9 @@
           :nav-key="uiStore.activePrimaryNav"
         />
         <!-- 个人页不恢复旧的助手/历史会话；只展示任务桥新生成的个人任务聊天。 -->
-        <div v-if="uiStore.activePrimaryNav === 'solo-team' && personalTaskChats.length" class="personal-task-list">
-          <p class="personal-task-list-title">我的任务</p>
-          <TransitionGroup name="personal-task" tag="div" class="personal-task-entries" appear>
+        <div v-show="uiStore.activePrimaryNav === 'solo-team'" class="personal-task-list">
+          <p v-if="personalTaskChats.length" class="personal-task-list-title">我的任务</p>
+          <TransitionGroup name="personal-task" tag="div" class="personal-task-entries">
             <button
               v-for="item in personalTaskChats"
               :key="`${item.projectId}:${item.task.id}`"
@@ -120,6 +121,19 @@
   </aside>
 
   <Teleport to="body">
+    <div v-show="taskMountFlight.visible" ref="taskMountFlightRef" class="task-mount-flight" aria-hidden="true">
+      <img :src="taskFolderIcon" alt="" />
+    </div>
+    <div
+      v-if="taskMountReceipt.visible"
+      class="task-mount-receipt"
+      :style="{ left: `${taskMountReceipt.left}px`, top: `${taskMountReceipt.top}px` }"
+      role="status"
+      aria-live="polite"
+    >已同步～</div>
+  </Teleport>
+
+  <Teleport to="body">
     <CreateProjectBaseModal
       :visible="showCreateTeamDialog"
       @update:visible="showCreateTeamDialog = $event"
@@ -148,11 +162,12 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ROOM_TYPES } from '@/shared/im-client'
 import addIcon from '@/assets/navigation/add.svg'
+import taskFolderIcon from '@/assets/navigation/task-folder.svg'
 // 一级导航「浮夸版」3D 插画图标（沿用生产：<img> + navIconMap，非线稿组件）
-import personalIcon from '@/assets/home/personal-crab.png' // 个人 = Kooky 螃蟹 App icon
+import personalIcon from '@/assets/home/nav-personal-crab.png' // 个人 = 六腿蟹角色图标
 import terminalIcon from '@/assets/home/terminal.png' // Kode = CLI 终端
 import contactsIcon from '@/assets/home/one-team.png' // 通讯录 = 原「一人团队」小姐姐
-import teamIcon from '@/assets/home/collaboration.png' // 协作 = 多人头像簇
+import teamIcon from '@/assets/home/nav-collaboration-original.png' // 协作 = 原始生成的双角色图标
 import marketIcon from '@/assets/home/marketLeft.png' // 市场
 import communityIcon from '@/assets/home/community.png' // 社区
 import CreateProjectBaseModal from '@/modules/group/components/CreateProjectBaseModal.vue'
@@ -214,9 +229,89 @@ const SOLO_TEAM_COORDINATOR_ID = 9001
 const showCreateDigitalEmployeeDialog = ref(false)
 const sidebarRef = ref(null)
 const sidebarWidth = ref(80)
+const taskMountFlightRef = ref(null)
+const taskMountFlight = ref({ visible: false })
+const collaborationPulse = ref(false)
+const taskMountReceipt = ref({ visible: false, left: 0, top: 0 })
+let taskMountAnimation = null
+let collaborationPulseTimer = null
+let taskMountReceiptTimer = null
+
+function handleTaskMountedToPersonal() {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+
+  const source = document.querySelector(
+    '.primary-nav-item[data-nav-key="collaboration"]',
+  ) || document.querySelector(
+    '.primary-nav-item[data-nav-key="collaboration-b"]',
+  )
+  const target = document.querySelector('.primary-nav-item[data-nav-key="solo-team"]')
+  if (!source || !target) return
+
+  const sourceRect = source.getBoundingClientRect()
+  const targetRect = target.getBoundingClientRect()
+  // 使用按钮几何中心作为固定锚点，不受图标选中态/悬停态缩放影响。
+  const startX = sourceRect.right - 30
+  const startY = sourceRect.top + (sourceRect.height - 32) / 2
+  const endX = targetRect.left + (targetRect.width - 32) / 2
+  const endY = targetRect.top + (targetRect.height - 32) / 2
+  collaborationPulse.value = true
+  window.clearTimeout(collaborationPulseTimer)
+  collaborationPulseTimer = window.setTimeout(() => {
+    collaborationPulse.value = false
+  }, 560)
+  taskMountFlight.value = { visible: true }
+
+  requestAnimationFrame(() => {
+    const element = taskMountFlightRef.value
+    if (!element) return
+    taskMountAnimation?.cancel()
+    const keyframes = Array.from({ length: 15 }, (_, index) => {
+      const progress = index / 14
+      const arc = Math.sin(progress * Math.PI) * -126
+      const emergence = progress < 0.2
+        ? Math.sin((progress / 0.2) * Math.PI) * 16
+        : 0
+      const x = startX + emergence + (endX - startX) * progress
+      const y = startY + (endY - startY) * progress + arc
+      const scale = progress < 0.2 ? 0.38 + progress * 3.2 : 1.04 - progress * 0.08
+      const rotate = -12 + progress * 28
+      return {
+        transform: `translate3d(${x}px, ${y}px, 0) scale(${scale}) rotate(${rotate}deg)`,
+        opacity: progress < 0.12 ? progress / 0.12 : 1,
+      }
+    })
+    taskMountAnimation = element.animate(keyframes, {
+      duration: 1320,
+      easing: 'cubic-bezier(.22, 1, .36, 1)',
+      fill: 'forwards',
+    })
+    taskMountAnimation.onfinish = () => {
+      taskMountFlight.value = { visible: false }
+      taskMountReceipt.value = {
+        visible: true,
+        left: targetRect.left + targetRect.width / 2,
+        top: targetRect.top + 4,
+      }
+      window.clearTimeout(taskMountReceiptTimer)
+      taskMountReceiptTimer = window.setTimeout(() => {
+        taskMountReceipt.value = { visible: false, left: 0, top: 0 }
+      }, 1100)
+      taskMountAnimation = null
+    }
+  })
+}
 
 // 监听 sidebar 宽度变化，实时更新按钮位置
 onMounted(async () => {
+  window.addEventListener('task-mounted-to-personal', handleTaskMountedToPersonal)
+  onUnmounted(() => {
+    window.removeEventListener('task-mounted-to-personal', handleTaskMountedToPersonal)
+    taskMountAnimation?.cancel()
+    window.clearTimeout(collaborationPulseTimer)
+    window.clearTimeout(taskMountReceiptTimer)
+  })
+
   if (sidebarRef.value) {
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -800,6 +895,48 @@ function onCliAvatarClick() {
   transition: width 0.24s ease;
 }
 
+/* 任务确认后的跨模块反馈：图标沿弧线从协作飞向个人。 */
+.task-mount-flight {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 3000;
+  width: 32px;
+  height: 32px;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.task-mount-flight img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 7px rgba(24, 49, 83, 0.22));
+}
+
+.task-mount-receipt {
+  position: fixed;
+  z-index: 3001;
+  transform: translate(-50%, -100%);
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #fff7f0;
+  color: #f26b3a;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 7px 16px rgba(242, 107, 58, 0.2);
+  animation: task-mount-receipt-in .28s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes task-mount-receipt-in {
+  from { opacity: 0; transform: translate(-50%, -72%) scale(.72); }
+  to { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+}
+
 /* 二级菜单收起/展开切换钮：贴右边缘、垂直居中，两种宽度下都在交界处 */
 .secondary-toggle {
   position: absolute;
@@ -928,13 +1065,13 @@ function onCliAvatarClick() {
 
 .primary-nav-item:hover .primary-nav-icon-inner,
 .primary-nav-item.active .primary-nav-icon-inner {
-  background: #fff;
-  box-shadow: 0 10px 24px rgba(47, 53, 71, 0.08);
+  background: transparent;
+  box-shadow: none;
 }
 
 .primary-nav-item:hover .primary-nav-icon-shell,
 .primary-nav-item.active .primary-nav-icon-shell {
-  background: linear-gradient(90deg, #f386be 0%, #8478fa 52%, #77c9fb 100%);
+  background: transparent;
 }
 
 .primary-nav-badge {
@@ -962,13 +1099,41 @@ function onCliAvatarClick() {
   width: 40px;
   height: 40px;
   object-fit: contain;
-  transition: width 0.2s, height 0.2s;
+  transition: width 0.2s, height 0.2s, filter 0.2s ease, transform 0.2s ease;
 }
 
 .primary-nav-item:hover .primary-nav-icon,
 .primary-nav-item.active .primary-nav-icon {
   width: 50px;
   height: 50px;
+}
+
+/* 选中仅以轻投影与一次灵动抖动提示，避免底板和描边干扰图标本身。 */
+.primary-nav-item.active .primary-nav-icon {
+  /* drop-shadow 按 PNG 的透明像素边缘投影，不再形成圆角矩形底板。 */
+  filter: drop-shadow(0 5px 7px rgba(31, 37, 51, 0.24));
+  animation: primary-nav-icon-wiggle .46s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes primary-nav-icon-wiggle {
+  0% { transform: translateY(2px) rotate(0deg) scale(.94); }
+  35% { transform: translateY(-2px) rotate(-5deg) scale(1.03); }
+  62% { transform: translateY(0) rotate(4deg) scale(1.01); }
+  82% { transform: translateY(-1px) rotate(-2deg) scale(1); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); }
+}
+
+.primary-nav-item.is-mounting .primary-nav-icon {
+  animation: collaboration-nav-nudge .56s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes collaboration-nav-nudge {
+  0% { transform: rotate(0deg) scale(1); }
+  22% { transform: rotate(-7deg) scale(1.04); }
+  44% { transform: rotate(6deg) scale(1.02); }
+  66% { transform: rotate(-4deg) scale(1.01); }
+  84% { transform: rotate(2deg) scale(1); }
+  100% { transform: rotate(0deg) scale(1); }
 }
 
 .primary-nav-item:active .primary-nav-icon-inner,
@@ -983,6 +1148,7 @@ function onCliAvatarClick() {
 @media (prefers-reduced-motion: reduce) {
   .primary-nav-item,
   .primary-nav-icon-inner,
+  .primary-nav-icon,
   .personal-task-entry,
   .personal-task-enter-active,
   .personal-task-leave-active,

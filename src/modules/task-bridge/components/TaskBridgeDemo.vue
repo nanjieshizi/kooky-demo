@@ -416,6 +416,9 @@ function confirmCurrentTask() {
   const current = bridgeStore.confirmTask(conversationId.value, task.id)
   if (!current) return
   syncPersonalTasks(current)
+  window.dispatchEvent(new CustomEvent('task-mounted-to-personal', {
+    detail: { taskId: task.id, projectId: conversationId.value },
+  }))
   isEditingAssignments.value = false
   activePanel.value = 'plan'
   if (current.phase === 'planned') {
