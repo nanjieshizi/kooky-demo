@@ -4,7 +4,7 @@
       <div v-if="visible" class="personal-task-modal" @click.self="requestClose">
         <section class="personal-task-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="personal-task-title">
           <header class="personal-task-modal__header">
-            <div><h2 id="personal-task-title">新建个人任务</h2><p>创建一个可执行、可验收的任务</p><span v-if="form.projectId">所属项目：{{ selectedProject?.name }}</span></div>
+            <div><div class="personal-task-modal__title-row"><h2 id="personal-task-title">新建个人任务</h2><span v-if="form.projectId">所属项目：{{ selectedProject?.name }}</span></div><p>创建一个可执行、可验收的任务</p></div>
             <button type="button" class="personal-task-modal__close" aria-label="关闭" @click="requestClose">×</button>
           </header>
 
@@ -15,7 +15,8 @@
                 <section class="personal-task-section"><h3>项目关联</h3><label>所属项目<select v-model="form.projectId"><option value="">不关联项目</option><option v-for="project in projects" :key="project.id" :value="project.id">{{ project.name }}</option></select></label><div v-if="selectedProject" class="personal-task-context"><strong>已带入项目底座 v{{ selectedProject.snapshot.version }}</strong><span>自动继承：项目目标、核心约束、工作约定、关键决策</span></div></section>
                 <section class="personal-task-section"><h3>工作范围</h3><div class="personal-task-grid"><label>包含范围<textarea v-model.trim="form.inScope" rows="3" placeholder="明确需要完成的内容"></textarea></label><label>不包含范围<textarea v-model.trim="form.outOfScope" rows="3" placeholder="明确不在本次任务内的内容"></textarea></label></div></section>
                 <section class="personal-task-section"><h3>交付物与验收标准</h3><label><span>交付物 <em>*</em></span><input v-model.trim="form.deliverable" placeholder="例如：竞品调研报告 · 在线文档" /></label><label><span>验收标准 <em>*</em></span><textarea v-model.trim="form.acceptance" rows="3" placeholder="写下可验证、可评审的完成标准"></textarea></label></section>
-                <section class="personal-task-section"><h3>负责人和可见范围</h3><div class="personal-task-grid"><label>负责人<input value="我" readonly /></label><label>协作者<select v-model="form.agent"><option>团队助理</option><option>产品数字人</option><option>设计数字人</option><option>研发数字人</option></select></label><label>任务卡片可见范围<select v-model="form.visibility"><option value="project_members">项目成员</option><option value="task_members">任务成员</option><option value="private">仅自己</option></select></label><label>任务底座可见范围<select v-model="form.snapshotVisibility"><option value="task_members">任务成员</option><option value="project_members">项目成员</option></select></label></div><small class="personal-task-hint">任务卡片可见范围不等于任务底座可见范围。</small></section>
+                <section class="personal-task-section"><h3>协作成员</h3><MemberPicker :model-value="form.members" @update:model-value="updateMembers" /><small class="personal-task-hint">AI 推荐组合会根据任务目标预选合适的联系人和数字人。</small></section>
+                <section class="personal-task-section"><h3>负责人和可见范围</h3><div class="personal-task-grid"><label>负责人<input value="我" readonly /></label><label>任务卡片可见范围<select v-model="form.visibility"><option value="project_members">项目成员</option><option value="task_members">任务成员</option><option value="private">仅自己</option></select></label><label>任务底座可见范围<select v-model="form.snapshotVisibility"><option value="task_members">任务成员</option><option value="project_members">项目成员</option></select></label></div><small class="personal-task-hint">任务卡片可见范围不等于任务底座可见范围。</small></section>
               </div>
               <aside class="personal-task-check-sidebar">
                 <div class="personal-task-check-sidebar__header"><h3>发布前检查</h3><p>任务创建后将冻结为任务底座 v1</p></div>
@@ -35,6 +36,7 @@
 import { computed, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useTaskBridgeStore } from '@/modules/task-bridge/store'
+import MemberPicker from '@/shared/components/MemberPicker.vue'
 
 const props = defineProps({ visible: { type: Boolean, default: false } })
 const emit = defineEmits(['close', 'created'])
@@ -42,7 +44,7 @@ const taskBridgeStore = useTaskBridgeStore()
 const formError = ref('')
 const taskTypes = ['产品', '设计', '研发', '研究', '内容', '运营', '其他']
 const priorities = ['低', '中', '高', '紧急']
-const form = reactive({ title: 'Q3 竞品调研报告', type: '研究', priority: '中', dueAt: '2026-08-20', goal: '梳理 5 家同类产品的核心功能、定价与差异化策略，形成可评审的竞品分析结论。', background: '围绕本季度产品规划，补充市场信息与竞品动态，为后续方案评审提供依据。', projectId: '', inScope: '竞品功能、定价、目标用户、核心体验与市场策略对比。', outOfScope: '不包含未经验证的用户规模数据，也不延伸到完整商业计划。', deliverable: '竞品分析-Q3.md · 在线文档', acceptance: '覆盖 5 家主要竞品；关键结论均标注来源；输出功能与定价对比表，并提出至少 3 条可执行建议。', agent: '团队助理', visibility: 'project_members', snapshotVisibility: 'task_members' })
+const form = reactive({ title: 'Q3 竞品调研报告', type: '研究', priority: '中', dueAt: '2026-08-20', goal: '梳理 5 家同类产品的核心功能、定价与差异化策略，形成可评审的竞品分析结论。', background: '围绕本季度产品规划，补充市场信息与竞品动态，为后续方案评审提供依据。', projectId: '', inScope: '竞品功能、定价、目标用户、核心体验与市场策略对比。', outOfScope: '不包含未经验证的用户规模数据，也不延伸到完整商业计划。', deliverable: '竞品分析-Q3.md · 在线文档', acceptance: '覆盖 5 家主要竞品；关键结论均标注来源；输出功能与定价对比表，并提出至少 3 条可执行建议。', agent: '团队助理', members: [{ id: 'agent-assistant', name: '团队助理', initial: '助', type: 'agent', meta: '任务拆解与协作同步' }], visibility: 'project_members', snapshotVisibility: 'task_members' })
 const projects = computed(() => Object.values(taskBridgeStore.projects).filter((project) => !project.isPersonalOnly && !String(project.id).startsWith('personal-task-')))
 const selectedProject = computed(() => projects.value.find((project) => project.id === form.projectId) || null)
 const checkItems = computed(() => [
@@ -50,6 +52,7 @@ const checkItems = computed(() => [
   { label: '任务目标', status: form.goal ? 'passed' : 'blocked', message: form.goal ? '已填写' : '请补充一句话目标' },
   { label: '项目关联', status: 'passed', message: selectedProject.value ? `已带入${selectedProject.value.name}底座 v${selectedProject.value.snapshot.version}` : '未关联项目，可独立执行' },
   { label: '负责人', status: 'passed', message: '我' },
+  { label: '协作成员', status: form.members.length ? 'passed' : 'warning', message: form.members.length ? `已选择 ${form.members.length} 位成员` : '可选择联系人或数字人' },
   { label: '交付物', status: form.deliverable ? 'passed' : 'blocked', message: form.deliverable ? '已添加 1 项交付物' : '请至少添加一项交付物' },
   { label: '验收标准', status: form.acceptance ? 'passed' : 'blocked', message: form.acceptance ? '已添加可验证标准' : '请至少添加一项可验证的验收标准' },
   { label: '权限设置', status: 'passed', message: '已设置任务卡片和任务底座可见范围' },
@@ -63,6 +66,7 @@ function requestClose() {
 }
 function saveDraft() { ElMessage.success('任务草稿已保存'); emit('close') }
 function suggestGoal() { if (!form.goal && form.title) form.goal = `围绕「${form.title}」完成关键信息梳理，并形成可执行、可评审的交付结果。` }
+function updateMembers(members) { form.members = members; form.agent = members.find((member) => member.type === 'agent')?.name || '团队助理' }
 function runCheck() { formError.value = ''; if (hasBlocked.value) { formError.value = '请补齐带 * 的必填信息后再创建任务'; return }; createTask() }
 function createTask() { const result = taskBridgeStore.createPersonalTask(form); if (!result) { formError.value = '任务创建失败，请稍后重试'; return }; emit('created', result) }
 </script>
@@ -135,4 +139,6 @@ function createTask() { const result = taskBridgeStore.createPersonalTask(form);
   .personal-task-check-sidebar { display: none; }
   .personal-task-modal__form > .personal-task-error, .personal-task-modal__form > .personal-task-modal__footer { flex: 0 0 auto; }
 }
+.personal-task-modal__title-row { display: flex; align-items: center; gap: 10px; }
+.personal-task-modal__title-row span { display: inline-block; margin: 0; padding: 3px 7px; border-radius: 5px; background: #fff0e9; color: #d75c2c; font-size: 10px; line-height: 1.2; white-space: nowrap; }
 </style>

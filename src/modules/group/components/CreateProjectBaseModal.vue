@@ -42,8 +42,7 @@
 
             <div class="form-section">
               <div class="section-heading"><div><span class="eyebrow">04</span><h3>团队成员与角色</h3></div><span class="section-note">至少添加一名成员</span></div>
-              <div class="members-list"><div v-for="(member, index) in form.members" :key="member.name" class="member-row"><span class="member-avatar" :class="`avatar-${index}`">{{ member.initial }}</span><div class="member-main"><strong>{{ member.name }} · {{ member.role }}</strong><span>{{ member.responsibility }}</span></div><button v-if="form.members.length > 1" class="remove-member" aria-label="移除成员" @click="removeMember(index)">×</button></div></div>
-              <button class="add-member" @click="addMember">＋ 添加成员或 AI 角色</button>
+              <MemberPicker v-model="form.members" />
               <small v-if="errors.members" class="standalone-error">{{ errors.members }}</small>
             </div>
 
@@ -69,6 +68,7 @@
 
 <script setup>
 import { computed, nextTick, reactive, ref, watch } from 'vue'
+import MemberPicker from '@/shared/components/MemberPicker.vue'
 
 defineOptions({ name: 'CreateProjectBaseModal' })
 const props = defineProps({ visible: { type: Boolean, default: false } })
@@ -81,7 +81,7 @@ const toast = ref('')
 const closeButton = ref(null)
 const errors = reactive({ name: '', goal: '', constraints: '', members: '' })
 const constraintOptions = ['讨论来源必须可追溯', '任务创建必须人工确认', '项目上下文按版本冻结', '私密内容不可越权', '自定义约束']
-const form = reactive({ name: '任务桥 · Task Bridge', goal: '让团队把讨论中的共识，稳定地转化为可执行、可验收的任务。', background: '', users: '产品、设计与研发团队', success: '', inScope: '讨论共识沉淀、任务拆解与验收标准', outScope: '替代团队决策、自动发布未经确认的任务', constraints: ['讨论来源必须可追溯', '任务创建必须人工确认', '项目上下文按版本冻结', '私密内容不可越权'], delivery: 'HTML 原型 + Markdown 规格', review: '提交 → 产品评审 → 修改 → 通过', members: [{ initial: 'JX', name: 'JX', role: '项目负责人', responsibility: '管理目标、决策与底座版本' }, { initial: 'LY', name: 'LY', role: '交互设计', responsibility: '负责流程、原型与体验评审' }] })
+const form = reactive({ name: '任务桥 · Task Bridge', goal: '让团队把讨论中的共识，稳定地转化为可执行、可验收的任务。', background: '', users: '产品、设计与研发团队', success: '', inScope: '讨论共识沉淀、任务拆解与验收标准', outScope: '替代团队决策、自动发布未经确认的任务', constraints: ['讨论来源必须可追溯', '任务创建必须人工确认', '项目上下文按版本冻结', '私密内容不可越权'], delivery: 'HTML 原型 + Markdown 规格', review: '提交 → 产品评审 → 修改 → 通过', members: [{ id: 'contact-owner', initial: '王', name: '王靖博', role: '项目负责人', responsibility: '管理目标、决策与底座版本', type: 'contact' }, { id: 'agent-product', initial: '产', name: '产品数字人', role: '调研协作', responsibility: '负责竞品调研与结论整理', type: 'agent' }, { id: 'agent-design', initial: '设', name: '设计数字人', role: '原型协作', responsibility: '负责流程、原型与体验评审', type: 'agent' }] })
 
 const checks = computed(() => [
   { label: '项目名称与目标', status: form.name && form.goal ? 'passed' : 'warning', hint: form.name && form.goal ? '信息完整' : '需要填写' },
@@ -97,8 +97,6 @@ watch(() => props.visible, (isVisible) => {
 
 function showToast(message) { toast.value = message; window.clearTimeout(showToast.timer); showToast.timer = window.setTimeout(() => { toast.value = '' }, 2200) }
 function toggleConstraint(option) { const index = form.constraints.indexOf(option); if (index >= 0) form.constraints.splice(index, 1); else form.constraints.push(option); dirty.value = true; errors.constraints = '' }
-function addMember() { form.members.push({ initial: 'AI', name: 'AI', role: '协作助手', responsibility: '整理讨论、同步上下文与风险提醒' }); dirty.value = true }
-function removeMember(index) { form.members.splice(index, 1); dirty.value = true }
 function generateSuggestion() { aiLoading.value = true; window.setTimeout(() => { aiLoading.value = false; showSuggestion.value = true }, 650) }
 function adoptSuggestion() { form.goal = '让团队把讨论中的共识，稳定地转化为可执行、可验收的任务。'; showSuggestion.value = false; dirty.value = true; showToast('已采用 AI 建议') }
 function validate() { errors.name = form.name.trim() ? '' : '请输入项目名称'; errors.goal = form.goal.trim() ? '' : '请输入一句话目标'; errors.constraints = form.constraints.length ? '' : '至少选择一条核心约束'; errors.members = form.members.length ? '' : '至少添加一名项目成员'; return !errors.name && !errors.goal && !errors.constraints && !errors.members }

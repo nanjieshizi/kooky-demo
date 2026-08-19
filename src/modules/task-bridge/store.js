@@ -119,6 +119,7 @@ export const useTaskBridgeStore = defineStore('taskBridge', {
         goal: String(payload.goal || '').trim(),
         owner: '我',
         agent: String(payload.agent || '团队助理'),
+        members: Array.isArray(payload.members) ? payload.members.map((member) => ({ ...member })) : [],
         deadline: String(payload.dueAt || '未设置'),
         deliverable: String(payload.deliverable || '').trim(),
         acceptance: String(payload.acceptance || '').trim(),
