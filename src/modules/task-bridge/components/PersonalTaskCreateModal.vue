@@ -12,7 +12,7 @@
               <div class="personal-task-form-scroll">
                 <section class="personal-task-section"><h3>基本信息</h3><div class="personal-task-grid"><label class="is-wide"><span>任务标题 <em>*</em></span><input v-model.trim="form.title" maxlength="60" placeholder="请输入任务名称" /></label><label><span>任务类型</span><select v-model="form.type"><option v-for="type in taskTypes" :key="type">{{ type }}</option></select></label><label><span>优先级</span><select v-model="form.priority"><option v-for="priority in priorities" :key="priority">{{ priority }}</option></select></label><label><span>截止时间</span><input v-model="form.dueAt" type="date" /></label></div></section>
                 <section class="personal-task-section"><h3>任务目标</h3><label><span>一句话目标 <em>*</em></span><textarea v-model.trim="form.goal" rows="2" placeholder="说明这项任务要达成什么结果"></textarea></label><label><span>任务背景</span><textarea v-model.trim="form.background" rows="2" placeholder="补充任务背景或上下文（可选）"></textarea></label><button type="button" class="personal-task-ai" @click="suggestGoal">✦ 让 AI 帮我优化目标</button></section>
-                <section class="personal-task-section"><h3>项目关联</h3><label>所属项目<select v-model="form.projectId"><option value="">不关联项目</option><option v-for="project in projects" :key="project.id" :value="project.id">{{ project.name }}</option></select></label><div v-if="selectedProject" class="personal-task-context"><strong>已带入项目底座 v{{ selectedProject.snapshot.version }}</strong><span>自动继承：项目目标、核心约束、工作约定、关键决策</span></div></section>
+                <section class="personal-task-section"><h3>项目关联</h3><label>所属项目<select ref="projectSelect" :value="form.projectId" @change="handleProjectChange"><option value="">不关联项目</option><option v-for="project in projects" :key="project.id" :value="project.id">{{ project.name }}</option></select></label><div v-if="form.projectId" class="personal-task-context-wrap"><div v-if="contextLoading" class="personal-task-context-loading">正在读取项目底座…</div><div v-else-if="selectedProject && selectedProject.snapshot" class="personal-task-context"><div class="personal-task-context__top"><div><strong>项目上下文</strong><span class="personal-task-context__project">{{ selectedProject.name }}</span></div><span class="personal-task-context__version">项目底座 v{{ selectedProject.snapshot.version }} · 更新于今天</span></div><p class="personal-task-context__summary">{{ contextSummary }}</p><span class="personal-task-context__included">已带入 · 项目目标、核心约束、工作约定和关键决策</span><div class="personal-task-context__actions"><button type="button" @click="showContextOptions = !showContextOptions">{{ showContextOptions ? '收起带入内容' : '调整带入内容' }}</button><button type="button" @click="showBaseDetails = !showBaseDetails">{{ showBaseDetails ? '收起项目底座' : '查看项目底座 →' }}</button><button type="button" class="is-quiet" @click="changeProject">更换项目</button><button type="button" class="is-quiet" @click="removeProject">移除项目</button></div><div v-if="showContextOptions" class="personal-task-context__options"><strong>选择任务底座背景</strong><label><input v-model="contextSections.projectGoal" type="checkbox" disabled />项目目标</label><label><input v-model="contextSections.constraints" type="checkbox" disabled />核心约束</label><label><input v-model="contextSections.workingConventions" type="checkbox" />工作约定</label><label><input v-model="contextSections.activeDecisions" type="checkbox" />关键决策</label><label><input v-model="contextSections.methodology" type="checkbox" />方法论沉淀</label><div class="personal-task-context__chat-picker"><div class="personal-task-context__chat-head"><strong>选择具体聊天内容</strong><span>已选 {{ selectedChatIds.length }} 条</span></div><div class="personal-task-context__chat-filters"><input v-model.trim="chatQuery" type="search" placeholder="搜索聊天内容" aria-label="搜索聊天内容" /><select v-model="chatSpeaker" aria-label="按发言人筛选"><option value="">全部发言人</option><option v-for="speaker in chatSpeakers" :key="speaker" :value="speaker">{{ speaker }}</option></select><select v-model="chatDate" aria-label="按日期筛选"><option value="">全部日期</option><option v-for="date in chatDates" :key="date" :value="date">{{ date }}</option></select></div><div class="personal-task-context__chat-list"><label v-for="chat in filteredChats" :key="chat.id" class="personal-task-context__chat-item" :class="{ selected: selectedChatIds.includes(chat.id) }"><input type="checkbox" :checked="selectedChatIds.includes(chat.id)" @change="toggleChat(chat.id)" /><span><strong>{{ chat.sender }}</strong><small>{{ chat.date }}</small><em>{{ chat.text }}</em></span></label><p v-if="!filteredChats.length" class="personal-task-context__chat-empty">没有找到匹配的聊天内容</p></div><small class="personal-task-context__chat-hint">未选择具体聊天时，仍按上方默认项目底座内容带入。</small></div></div><div v-if="showBaseDetails" class="personal-task-context__details"><strong>项目底座 v{{ selectedProject.snapshot.version }}</strong><span>{{ selectedProject.snapshot.projectBase }}</span><small>触发规则：{{ selectedProject.snapshot.trigger }}</small></div></div><div v-else class="personal-task-context-empty"><strong>该项目暂未创建项目底座</strong><span>任务仍可继续创建，仅使用自身填写的上下文。</span></div></div></section>
                 <section class="personal-task-section"><h3>工作范围</h3><div class="personal-task-grid"><label>包含范围<textarea v-model.trim="form.inScope" rows="3" placeholder="明确需要完成的内容"></textarea></label><label>不包含范围<textarea v-model.trim="form.outOfScope" rows="3" placeholder="明确不在本次任务内的内容"></textarea></label></div></section>
                 <section class="personal-task-section"><h3>交付物与验收标准</h3><label><span>交付物 <em>*</em></span><input v-model.trim="form.deliverable" placeholder="例如：竞品调研报告 · 在线文档" /></label><label><span>验收标准 <em>*</em></span><textarea v-model.trim="form.acceptance" rows="3" placeholder="写下可验证、可评审的完成标准"></textarea></label></section>
                 <section class="personal-task-section"><h3>协作成员</h3><MemberPicker :model-value="form.members" @update:model-value="updateMembers" /><small class="personal-task-hint">AI 推荐组合会根据任务目标预选合适的联系人和数字人。</small></section>
@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, nextTick, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useTaskBridgeStore } from '@/modules/task-bridge/store'
 import MemberPicker from '@/shared/components/MemberPicker.vue'
@@ -42,11 +42,46 @@ const props = defineProps({ visible: { type: Boolean, default: false } })
 const emit = defineEmits(['close', 'created'])
 const taskBridgeStore = useTaskBridgeStore()
 const formError = ref('')
+const contextLoading = ref(false)
+const showContextOptions = ref(false)
+const showBaseDetails = ref(false)
+const projectSelect = ref(null)
+const chatQuery = ref('')
+const chatSpeaker = ref('')
+const chatDate = ref('')
+const selectedChatIds = ref([])
 const taskTypes = ['产品', '设计', '研发', '研究', '内容', '运营', '其他']
 const priorities = ['低', '中', '高', '紧急']
 const form = reactive({ title: 'Q3 竞品调研报告', type: '研究', priority: '中', dueAt: '2026-08-20', goal: '梳理 5 家同类产品的核心功能、定价与差异化策略，形成可评审的竞品分析结论。', background: '围绕本季度产品规划，补充市场信息与竞品动态，为后续方案评审提供依据。', projectId: '', inScope: '竞品功能、定价、目标用户、核心体验与市场策略对比。', outOfScope: '不包含未经验证的用户规模数据，也不延伸到完整商业计划。', deliverable: '竞品分析-Q3.md · 在线文档', acceptance: '覆盖 5 家主要竞品；关键结论均标注来源；输出功能与定价对比表，并提出至少 3 条可执行建议。', agent: '团队助理', members: [{ id: 'agent-assistant', name: '团队助理', initial: '助', type: 'agent', meta: '任务拆解与协作同步' }], visibility: 'project_members', snapshotVisibility: 'task_members' })
+const contextSections = reactive({ projectGoal: true, constraints: true, workingConventions: true, activeDecisions: true, methodology: false })
 const projects = computed(() => Object.values(taskBridgeStore.projects).filter((project) => !project.isPersonalOnly && !String(project.id).startsWith('personal-task-')))
 const selectedProject = computed(() => projects.value.find((project) => project.id === form.projectId) || null)
+const contextSummary = computed(() => { const snapshot = selectedProject.value?.snapshot; const constraintCount = snapshot?.constraints?.length || 4; const decisionCount = snapshot?.activeDecisions?.length || 2; return `已带入：项目目标、${constraintCount} 条约束、${decisionCount} 条关键决策` })
+const includedSections = computed(() => Object.entries(contextSections).filter(([, enabled]) => enabled).map(([key]) => key))
+const demoChats = [
+  { id: 'context-chat-1', sender: '我', text: '请基于本次项目目标，明确调研范围、负责人和验收标准。', date: '2026-08-18' },
+  { id: 'context-chat-2', sender: '团队助理', text: '已识别项目目标，并建议先完成竞品功能与定价维度对比。', date: '2026-08-18' },
+  { id: 'context-chat-3', sender: '产品数字人', text: '我会整理主要竞品资料，输出可评审的对比结论。', date: '2026-08-19' },
+  { id: 'context-chat-4', sender: '设计数字人', text: '建议补充核心流程和关键异常状态，便于后续评审。', date: '2026-08-19' },
+]
+const contextChats = computed(() => {
+  const discussion = selectedProject.value?.discussion || []
+  if (!discussion.length) return demoChats
+  return discussion.map((message, index) => ({
+    id: message.id || `project-chat-${index}`,
+    sender: message.type === 'user' ? '我' : '团队助理',
+    text: message.text || message.content || '项目讨论内容',
+    date: message.date || '2026-08-19',
+  }))
+})
+const chatSpeakers = computed(() => [...new Set(contextChats.value.map((chat) => chat.sender))])
+const chatDates = computed(() => [...new Set(contextChats.value.map((chat) => chat.date))])
+const filteredChats = computed(() => contextChats.value.filter((chat) => {
+  const matchesQuery = !chatQuery.value || `${chat.sender}${chat.text}`.toLowerCase().includes(chatQuery.value.toLowerCase())
+  const matchesSpeaker = !chatSpeaker.value || chat.sender === chatSpeaker.value
+  const matchesDate = !chatDate.value || chat.date === chatDate.value
+  return matchesQuery && matchesSpeaker && matchesDate
+}))
 const checkItems = computed(() => [
   { label: '任务标题', status: form.title ? 'passed' : 'blocked', message: form.title ? '已填写' : '请补充任务标题' },
   { label: '任务目标', status: form.goal ? 'passed' : 'blocked', message: form.goal ? '已填写' : '请补充一句话目标' },
@@ -67,8 +102,12 @@ function requestClose() {
 function saveDraft() { ElMessage.success('任务草稿已保存'); emit('close') }
 function suggestGoal() { if (!form.goal && form.title) form.goal = `围绕「${form.title}」完成关键信息梳理，并形成可执行、可评审的交付结果。` }
 function updateMembers(members) { form.members = members; form.agent = members.find((member) => member.type === 'agent')?.name || '团队助理' }
+function handleProjectChange(event) { form.projectId = event.target.value; showContextOptions.value = false; showBaseDetails.value = false; chatQuery.value = ''; chatSpeaker.value = ''; chatDate.value = ''; selectedChatIds.value = []; if (!form.projectId) return; contextLoading.value = true; window.setTimeout(() => { contextLoading.value = false }, 360) }
+function changeProject() { showContextOptions.value = false; showBaseDetails.value = false; nextTick(() => projectSelect.value?.focus()) }
+function removeProject() { form.projectId = ''; showContextOptions.value = false; showBaseDetails.value = false; selectedChatIds.value = []; ElMessage.success('已移除项目关联 · 可重新选择') }
+function toggleChat(chatId) { selectedChatIds.value = selectedChatIds.value.includes(chatId) ? selectedChatIds.value.filter((id) => id !== chatId) : [...selectedChatIds.value, chatId] }
 function runCheck() { formError.value = ''; if (hasBlocked.value) { formError.value = '请补齐带 * 的必填信息后再创建任务'; return }; createTask() }
-function createTask() { const result = taskBridgeStore.createPersonalTask(form); if (!result) { formError.value = '任务创建失败，请稍后重试'; return }; emit('created', result) }
+function createTask() { const payload = { ...form, projectBaseVersion: selectedProject.value?.snapshot?.version || null, includedSections: form.projectId ? includedSections.value : [], includedChatIds: form.projectId ? selectedChatIds.value : [] }; const result = taskBridgeStore.createPersonalTask(payload); if (!result) { formError.value = '任务创建失败，请稍后重试'; return }; emit('created', result) }
 </script>
 
 <style scoped>
@@ -141,4 +180,18 @@ function createTask() { const result = taskBridgeStore.createPersonalTask(form);
 }
 .personal-task-modal__title-row { display: flex; align-items: center; gap: 10px; }
 .personal-task-modal__title-row span { display: inline-block; margin: 0; padding: 3px 7px; border-radius: 5px; background: #fff0e9; color: #d75c2c; font-size: 10px; line-height: 1.2; white-space: nowrap; }
+.personal-task-context-wrap { margin-top: 12px; }
+.personal-task-context-loading, .personal-task-context-empty { display: flex; flex-direction: column; gap: 5px; padding: 14px; color: var(--personal-task-secondary); background: #f7f8fa; border: 1px solid #e7ebef; border-radius: 10px; font-size: 11px; line-height: 1.5; }
+.personal-task-context-loading { color: #87909d; }
+.personal-task-context-empty strong { color: var(--personal-task-ink); font-size: 11px; }.personal-task-context-empty span { font-size: 10px; }
+.personal-task-context { padding: 14px; margin-top: 0; color: var(--personal-task-ink); background: #f7f8fa; border: 1px solid #e7ebef; border-radius: 10px; }
+.personal-task-context__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }.personal-task-context__top > div { display: flex; min-width: 0; flex-direction: column; gap: 5px; }.personal-task-context__top strong { font-size: 12px; }.personal-task-context__project { color: var(--personal-task-ink); font-size: 12px; font-weight: 650; }.personal-task-context__version { padding: 3px 7px; color: #3157d5; background: #eef2ff; border-radius: 5px; font-size: 10px; white-space: nowrap; }
+.personal-task-context__summary { margin: 12px 0 5px; color: var(--personal-task-ink); font-size: 11px; line-height: 1.5; }.personal-task-context__included { display: block; color: #2b8a65; font-size: 10px; line-height: 1.5; }
+.personal-task-context__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 13px; }.personal-task-context__actions button { padding: 0; color: #3157d5; background: transparent; border: 0; outline: 0; font-size: 10px; cursor: pointer; }.personal-task-context__actions button:hover { color: #2445b3; }.personal-task-context__actions button.is-quiet { color: #87909d; }.personal-task-context__actions button:focus-visible { outline: 2px solid #ffbda3; outline-offset: 3px; border-radius: 3px; }
+.personal-task-context__options { display: grid; gap: 8px; padding: 12px; margin-top: 12px; background: #fff; border: 1px solid #e7ebef; border-radius: 8px; }.personal-task-context__options strong { margin-bottom: 2px; color: var(--personal-task-ink); font-size: 11px; }.personal-task-context__options label { display: flex; align-items: center; flex-direction: row; gap: 7px; color: #596575; font-size: 10px; font-weight: 500; }.personal-task-context__options input { width: 14px; height: 14px; accent-color: #ff621f; }.personal-task-context__options input:disabled { opacity: .75; }
+.personal-task-context__details { display: flex; flex-direction: column; gap: 6px; padding: 12px; margin-top: 12px; color: #596575; background: #fff; border: 1px solid #e7ebef; border-radius: 8px; font-size: 10px; line-height: 1.55; }.personal-task-context__details strong { color: var(--personal-task-ink); font-size: 11px; }.personal-task-context__details small { color: #87909d; font-size: 9px; }
+.personal-task-context__chat-picker { display: flex; flex-direction: column; gap: 9px; padding-top: 12px; margin-top: 4px; border-top: 1px solid #eef1f3; }.personal-task-context__chat-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }.personal-task-context__chat-head strong { color: var(--personal-task-ink); font-size: 11px; }.personal-task-context__chat-head span { color: #87909d; font-size: 9px; }
+.personal-task-context__chat-filters { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(90px, .8fr) minmax(90px, .8fr); gap: 6px; }.personal-task-context__chat-filters input, .personal-task-context__chat-filters select { box-sizing: border-box; width: 100%; height: 30px; min-width: 0; padding: 0 8px; color: var(--personal-task-ink); background: #fff; border: 1px solid #e7ebef; border-radius: 6px; outline: 0; font-size: 10px; }.personal-task-context__chat-filters input:focus, .personal-task-context__chat-filters select:focus { border-color: #f09a78; box-shadow: 0 0 0 2px #fff0e9; }
+.personal-task-context__chat-list { display: grid; gap: 5px; max-height: 185px; overflow-y: auto; }.personal-task-context__chat-item { display: flex; align-items: flex-start; gap: 7px; padding: 8px; color: #596575; background: #fff; border: 1px solid #e7ebef; border-radius: 7px; cursor: pointer; }.personal-task-context__chat-item:hover, .personal-task-context__chat-item.selected { background: #fff8f4; border-color: #ffd8c8; }.personal-task-context__chat-item input { width: 14px; height: 14px; flex: 0 0 14px; margin: 1px 0 0; accent-color: #ff621f; }.personal-task-context__chat-item > span { display: grid; min-width: 0; grid-template-columns: auto auto; column-gap: 6px; }.personal-task-context__chat-item strong { color: var(--personal-task-ink); font-size: 10px; }.personal-task-context__chat-item small { color: #a0a8b2; font-size: 9px; }.personal-task-context__chat-item em { grid-column: 1 / -1; margin-top: 4px; color: #596575; font-style: normal; font-size: 10px; line-height: 1.45; }.personal-task-context__chat-empty { padding: 12px; margin: 0; color: #a0a8b2; text-align: center; font-size: 10px; }.personal-task-context__chat-hint { color: #87909d; font-size: 9px; line-height: 1.4; }
+@media (max-width:700px) { .personal-task-context__top { flex-direction: column; }.personal-task-context__chat-filters { grid-template-columns: 1fr 1fr; }.personal-task-context__chat-filters input { grid-column: 1 / -1; } }
 </style>
