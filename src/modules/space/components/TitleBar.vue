@@ -607,8 +607,8 @@ async function handleCommand(cmd) {
 }
 
 .title-logo {
-  height: 64px;
-  width: 150px;
+  height: 52px;
+  width: 122px;
   display: block;
   object-fit: contain;
   filter: contrast(1.12);
