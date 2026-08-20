@@ -14,7 +14,7 @@
           :key="item.key"
           type="button"
           class="primary-nav-item"
-          :class="{ active: isPrimaryItemActive(item.key), 'is-mounting': isCollaborationNavKey(item.key) && collaborationPulse }"
+          :class="{ active: isPrimaryItemActive(item.key), 'is-mounting': isCollaborationNavKey(item.key) && collaborationPulse, 'primary-nav-item--personal': item.key === 'solo-team', 'primary-nav-item--collaboration': isCollaborationNavKey(item.key) }"
           :data-nav-key="item.key"
           @click="onPrimaryNavClick(item)"
         >
@@ -1108,11 +1108,37 @@ function onCliAvatarClick() {
   height: 50px;
 }
 
+/* 个人入口使用更醒目的螃蟹头像，其他导航图标保持原尺寸。 */
+.primary-nav-item--personal .primary-nav-icon-shell {
+  width: 68px;
+  height: 68px;
+}
+
+.primary-nav-item--personal .primary-nav-icon {
+  width: 68px;
+  height: 68px;
+}
+
+.primary-nav-item--personal:hover .primary-nav-icon,
+.primary-nav-item--personal.active .primary-nav-icon {
+  width: 82px;
+  height: 82px;
+}
+
 /* 选中仅以轻投影与一次灵动抖动提示，避免底板和描边干扰图标本身。 */
 .primary-nav-item.active .primary-nav-icon {
   /* drop-shadow 按 PNG 的透明像素边缘投影，不再形成圆角矩形底板。 */
   filter: drop-shadow(0 5px 7px rgba(31, 37, 51, 0.24));
   animation: primary-nav-icon-wiggle .46s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+/* 放在通用选中态之后，确保两类主入口使用各自的阴影色相。 */
+.primary-nav-item--collaboration.active .primary-nav-icon {
+  filter: drop-shadow(0 5px 7px rgba(75, 128, 206, 0.22));
+}
+
+.primary-nav-item--personal.active .primary-nav-icon {
+  filter: drop-shadow(0 5px 7px rgba(214, 91, 72, 0.22));
 }
 
 @keyframes primary-nav-icon-wiggle {

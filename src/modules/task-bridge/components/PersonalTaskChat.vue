@@ -1,7 +1,7 @@
 <template>
   <section class="personal-task-chat">
     <header class="task-chat-header">
-      <div><small>个人任务</small><strong>{{ task.title }}</strong></div>
+      <div><strong>{{ task.title }}</strong></div>
       <button type="button" @click="backToProject">返回项目</button>
     </header>
     <div class="task-chat-scroll">
