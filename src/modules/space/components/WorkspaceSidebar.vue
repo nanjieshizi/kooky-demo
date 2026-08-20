@@ -14,7 +14,7 @@
           :key="item.key"
           type="button"
           class="primary-nav-item"
-          :class="{ active: isPrimaryItemActive(item.key), 'is-mounting': isCollaborationNavKey(item.key) && collaborationPulse, 'primary-nav-item--personal': item.key === 'solo-team', 'primary-nav-item--collaboration': isCollaborationNavKey(item.key) }"
+          :class="{ active: isPrimaryItemActive(item.key), 'is-mounting': (isCollaborationNavKey(item.key) && collaborationPulse) || (item.key === 'solo-team' && personalPulse), 'primary-nav-item--personal': item.key === 'solo-team', 'primary-nav-item--collaboration': isCollaborationNavKey(item.key) }"
           :data-nav-key="item.key"
           @click="onPrimaryNavClick(item)"
         >
@@ -84,8 +84,8 @@
         />
         <!-- 个人页不恢复旧的助手/历史会话；只展示任务桥新生成的个人任务聊天。 -->
         <div v-show="uiStore.activePrimaryNav === 'solo-team'" class="personal-task-list">
-          <p v-if="personalTaskChats.length" class="personal-task-list-title">我的任务</p>
-          <TransitionGroup name="personal-task" tag="div" class="personal-task-entries">
+          <p class="personal-task-list-title">历史对话</p>
+          <TransitionGroup v-if="personalTaskChats.length" name="personal-task" tag="div" class="personal-task-entries">
             <button
               v-for="item in personalTaskChats"
               :key="`${item.projectId}:${item.task.id}`"
@@ -101,6 +101,10 @@
               </span>
             </button>
           </TransitionGroup>
+          <div v-else class="personal-history-empty" role="status">
+            <img :src="personalHistoryEmpty" alt="" />
+            <p><strong>没有历史对话</strong><span>新建任务可选择关联项目</span></p>
+          </div>
         </div>
         <DeerflowThreadList v-if="uiStore.activePrimaryNav === 'deerflow'" />
 
@@ -202,6 +206,7 @@ import { useTaskBridgeStore } from '@/modules/task-bridge/store'
 import { IS_DEMO } from '@/shared/utils/buildMode'
 import digitalEmployeeIcon from '@/assets/soloTeam/add_agent.png'
 import soloTeamCreateIcon from '@/assets/soloTeam/add_team.png'
+import personalHistoryEmpty from '@/assets/personal-history-empty.png'
 
 
 const router = useRouter()
@@ -232,20 +237,24 @@ const sidebarWidth = ref(80)
 const taskMountFlightRef = ref(null)
 const taskMountFlight = ref({ visible: false })
 const collaborationPulse = ref(false)
+const personalPulse = ref(false)
 const taskMountReceipt = ref({ visible: false, left: 0, top: 0 })
 let taskMountAnimation = null
 let collaborationPulseTimer = null
+let personalPulseTimer = null
 let taskMountReceiptTimer = null
 
-function handleTaskMountedToPersonal() {
+function playTaskMountFlight(direction = 'to-personal') {
   if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
 
-  const source = document.querySelector(
+  const collaboration = document.querySelector(
     '.primary-nav-item[data-nav-key="collaboration"]',
   ) || document.querySelector(
     '.primary-nav-item[data-nav-key="collaboration-b"]',
   )
-  const target = document.querySelector('.primary-nav-item[data-nav-key="solo-team"]')
+  const personal = document.querySelector('.primary-nav-item[data-nav-key="solo-team"]')
+  const source = direction === 'to-collaboration' ? personal : collaboration
+  const target = direction === 'to-collaboration' ? collaboration : personal
   if (!source || !target) return
 
   const sourceRect = source.getBoundingClientRect()
@@ -255,11 +264,15 @@ function handleTaskMountedToPersonal() {
   const startY = sourceRect.top + (sourceRect.height - 32) / 2
   const endX = targetRect.left + (targetRect.width - 32) / 2
   const endY = targetRect.top + (targetRect.height - 32) / 2
-  collaborationPulse.value = true
-  window.clearTimeout(collaborationPulseTimer)
-  collaborationPulseTimer = window.setTimeout(() => {
-    collaborationPulse.value = false
+  const sourcePulse = direction === 'to-collaboration' ? personalPulse : collaborationPulse
+  const sourcePulseTimer = direction === 'to-collaboration' ? personalPulseTimer : collaborationPulseTimer
+  sourcePulse.value = true
+  window.clearTimeout(sourcePulseTimer)
+  const nextPulseTimer = window.setTimeout(() => {
+    sourcePulse.value = false
   }, 560)
+  if (direction === 'to-collaboration') personalPulseTimer = nextPulseTimer
+  else collaborationPulseTimer = nextPulseTimer
   taskMountFlight.value = { visible: true }
 
   requestAnimationFrame(() => {
@@ -288,6 +301,13 @@ function handleTaskMountedToPersonal() {
     })
     taskMountAnimation.onfinish = () => {
       taskMountFlight.value = { visible: false }
+      if (direction === 'to-collaboration') {
+        collaborationPulse.value = true
+        window.clearTimeout(collaborationPulseTimer)
+        collaborationPulseTimer = window.setTimeout(() => {
+          collaborationPulse.value = false
+        }, 560)
+      }
       taskMountReceipt.value = {
         visible: true,
         left: targetRect.left + targetRect.width / 2,
@@ -302,13 +322,24 @@ function handleTaskMountedToPersonal() {
   })
 }
 
+function handleTaskMountedToPersonal() {
+  playTaskMountFlight('to-personal')
+}
+
+function handlePersonalTaskMountedToCollaboration() {
+  playTaskMountFlight('to-collaboration')
+}
+
 // 监听 sidebar 宽度变化，实时更新按钮位置
 onMounted(async () => {
   window.addEventListener('task-mounted-to-personal', handleTaskMountedToPersonal)
+  window.addEventListener('personal-task-mounted-to-collaboration', handlePersonalTaskMountedToCollaboration)
   onUnmounted(() => {
     window.removeEventListener('task-mounted-to-personal', handleTaskMountedToPersonal)
+    window.removeEventListener('personal-task-mounted-to-collaboration', handlePersonalTaskMountedToCollaboration)
     taskMountAnimation?.cancel()
     window.clearTimeout(collaborationPulseTimer)
+    window.clearTimeout(personalPulseTimer)
     window.clearTimeout(taskMountReceiptTimer)
   })
 
@@ -742,6 +773,9 @@ function handlePersonalTaskCreated(result = {}) {
   const projectId = result.project?.id
   const taskId = result.task?.id
   if (!projectId || !taskId) return
+  window.dispatchEvent(new CustomEvent('personal-task-mounted-to-collaboration', {
+    detail: { taskId, projectId },
+  }))
   uiStore.expandSidebar()
   uiStore.setActiveNavigation('solo-team', `task-bridge:${projectId}:${taskId}`)
 }
@@ -1244,6 +1278,10 @@ function onCliAvatarClick() {
 }
 
 .personal-task-list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   padding: 12px 14px 18px;
 }
 
@@ -1251,6 +1289,48 @@ function onCliAvatarClick() {
   margin: 0 0 8px 6px;
   color: #969daa;
   font-size: 12px;
+}
+
+.personal-history-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 8px 30px;
+  color: #9aa1ad;
+  text-align: center;
+}
+
+.personal-history-empty img {
+  width: 132px;
+  height: 132px;
+  object-fit: contain;
+}
+
+.personal-history-empty p {
+  max-width: 170px;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.personal-history-empty p strong,
+.personal-history-empty p span {
+  display: block;
+}
+
+.personal-history-empty p strong {
+  color: #697383;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.personal-history-empty p span {
+  margin-top: 3px;
+  color: #a2a9b4;
+  font-size: 10px;
+  font-weight: 400;
 }
 
 .personal-task-entries { display: flex; flex-direction: column; gap: 2px; }
