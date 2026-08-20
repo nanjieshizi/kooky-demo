@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, reactive, ref } from 'vue'
+import { computed, nextTick, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useTaskBridgeStore } from '@/modules/task-bridge/store'
 import MemberPicker from '@/shared/components/MemberPicker.vue'
@@ -56,6 +56,14 @@ const form = reactive({ title: 'Q3 竞品调研报告', type: '研究', priority
 const contextSections = reactive({ projectGoal: true, constraints: true, workingConventions: true, activeDecisions: true, methodology: false })
 const projects = computed(() => Object.values(taskBridgeStore.projects).filter((project) => !project.isPersonalOnly && !String(project.id).startsWith('personal-task-')))
 const selectedProject = computed(() => projects.value.find((project) => project.id === form.projectId) || null)
+watch([() => props.visible, projects], ([visible]) => {
+  if (!visible || form.projectId) return
+  const defaultProject = projects.value.find((project) => String(project.name).trim() === '项目一')
+  if (!defaultProject) return
+  form.projectId = String(defaultProject.id)
+  contextLoading.value = true
+  window.setTimeout(() => { contextLoading.value = false }, 360)
+}, { immediate: true })
 const contextSummary = computed(() => { const snapshot = selectedProject.value?.snapshot; const constraintCount = snapshot?.constraints?.length || 4; const decisionCount = snapshot?.activeDecisions?.length || 2; return `已带入：项目目标、${constraintCount} 条约束、${decisionCount} 条关键决策` })
 const includedSections = computed(() => Object.entries(contextSections).filter(([, enabled]) => enabled).map(([key]) => key))
 const demoChats = [

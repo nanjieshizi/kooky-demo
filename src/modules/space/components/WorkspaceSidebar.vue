@@ -752,6 +752,10 @@ function onAddTeamClick() {
   uiStore.expandSidebar()
 
   if (uiStore.activePrimaryNav === 'solo-team') {
+    const existingDemoProject = Object.values(taskBridgeStore.projects).find(
+      (project) => !project.isPersonalOnly && String(project.name).trim() === '项目一',
+    )
+    if (!existingDemoProject) taskBridgeStore.ensureProject('task-bridge-demo', '项目一')
     showPersonalTaskCreateModal.value = true
     return
   }
@@ -770,12 +774,15 @@ function onAddTeamClick() {
 
 function handlePersonalTaskCreated(result = {}) {
   showPersonalTaskCreateModal.value = false
-  const projectId = result.project?.id
+  const project = result.project
+  const projectId = project?.id
   const taskId = result.task?.id
   if (!projectId || !taskId) return
-  window.dispatchEvent(new CustomEvent('personal-task-mounted-to-collaboration', {
-    detail: { taskId, projectId },
-  }))
+  if (!project.isPersonalOnly) {
+    window.dispatchEvent(new CustomEvent('personal-task-mounted-to-collaboration', {
+      detail: { taskId, projectId },
+    }))
+  }
   uiStore.expandSidebar()
   uiStore.setActiveNavigation('solo-team', `task-bridge:${projectId}:${taskId}`)
 }
