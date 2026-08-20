@@ -10,32 +10,34 @@
         <el-icon class="category-arrow" :class="{ 'is-expanded': expandedCategories.project }"><CaretRight /></el-icon>
       </div>
       <div class="submenu-category-content">
-        <template v-for="project in taskBridgeProjects" :key="project.id">
-          <button
-            type="button"
-            class="submenu-item submenu-item--project"
-            :class="{ active: String(uiStore.activeSecondaryNav) === String(project.id) }"
-            @click="onTaskBridgeProjectClick(project)"
-          >
-            <span class="submenu-project-icon">▣</span>
-            <span class="submenu-conversation-copy">
-              <span class="submenu-item-label">{{ project.name }}</span>
-              <span class="submenu-item-preview">{{ taskBridgeProjectPreview(project) }}</span>
-            </span>
-          </button>
-          <TransitionGroup v-if="taskBridgePersonalTasks(project).length" name="project-task" tag="div" class="submenu-project-tasks" appear>
+        <TransitionGroup name="project-card" tag="div" class="submenu-project-list" appear>
+          <div v-for="project in taskBridgeProjects" :key="project.id" class="submenu-project-block">
             <button
-              v-for="task in taskBridgePersonalTasks(project)"
-              :key="`${project.id}-${task.id}`"
               type="button"
-              class="submenu-project-task"
-              @click="onTaskBridgeTaskClick(project, task)"
+              class="submenu-item submenu-item--project"
+              :class="{ active: String(uiStore.activeSecondaryNav) === String(project.id) }"
+              @click="onTaskBridgeProjectClick(project)"
             >
-              <span class="submenu-project-task-title">{{ task.title }}</span>
-              <span class="submenu-project-task-meta">我的任务</span>
+              <span class="submenu-project-icon">▣</span>
+              <span class="submenu-conversation-copy">
+                <span class="submenu-item-label">{{ project.name }}</span>
+                <span class="submenu-item-preview">{{ taskBridgeProjectPreview(project) }}</span>
+              </span>
             </button>
-          </TransitionGroup>
-        </template>
+            <TransitionGroup v-if="taskBridgePersonalTasks(project).length" name="project-task" tag="div" class="submenu-project-tasks" appear>
+              <button
+                v-for="task in taskBridgePersonalTasks(project)"
+                :key="`${project.id}-${task.id}`"
+                type="button"
+                class="submenu-project-task"
+                @click="onTaskBridgeTaskClick(project, task)"
+              >
+                <span class="submenu-project-task-title">{{ task.title }}</span>
+                <span class="submenu-project-task-meta">我的任务</span>
+              </button>
+            </TransitionGroup>
+          </div>
+        </TransitionGroup>
       </div>
     </div>
 
@@ -917,8 +919,8 @@ async function onSpaceClick(spaceId) {
   flex: 0 0 auto;
 
   // 留出阴影缓冲区，避免选中项目卡片的外阴影被滚动容器裁切。
-  padding: 4px 8px 8px;
-  margin: -4px -8px -8px;
+  padding: 12px 14px 16px;
+  margin: -4px 0 0;
 
   .submenu-category:not(.is-expanded) & {
     display: none;
@@ -977,9 +979,6 @@ async function onSpaceClick(spaceId) {
 
 .submenu-item.active {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.7) 99%);
-  .submenu-item-label{
-    font-weight: 600;
-  }
 }
 
 .submenu-item--conversation {
@@ -1012,8 +1011,31 @@ async function onSpaceClick(spaceId) {
 }
 
 .submenu-item--project.active {
-  box-shadow: 0 3px 9px rgba(43, 51, 72, 0.055), 0 1px 3px rgba(43, 51, 72, 0.035);
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 9px 24px rgba(86, 104, 137, 0.12), 0 3px 8px rgba(86, 104, 137, 0.07);
 }
+
+.submenu-project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.submenu-project-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.project-card-enter-active,
+.project-card-appear-active,
+.project-card-leave-active,
+.project-card-move { transition: opacity .46s ease, transform .46s cubic-bezier(.16, 1, .3, 1), filter .46s ease; }
+.project-card-enter-from,
+.project-card-appear-from { opacity: 0; transform: translateY(-18px) scale(.92); filter: blur(4px); }
+.project-card-leave-to { opacity: 0; transform: translateY(-8px) scale(.97); }
+.project-card-leave-active { position: absolute; width: calc(100% - 28px); }
 
 .submenu-project-tasks {
   display: grid;
@@ -1059,7 +1081,7 @@ async function onSpaceClick(spaceId) {
 .submenu-project-task-title {
   overflow: hidden;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 400;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1071,6 +1093,10 @@ async function onSpaceClick(spaceId) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .project-card-enter-active,
+  .project-card-appear-active,
+  .project-card-leave-active,
+  .project-card-move,
   .project-task-enter-active,
   .project-task-appear-active,
   .project-task-leave-active,
@@ -1093,6 +1119,7 @@ async function onSpaceClick(spaceId) {
   min-width: 0;
   flex: 1;
   font-size: 14px;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

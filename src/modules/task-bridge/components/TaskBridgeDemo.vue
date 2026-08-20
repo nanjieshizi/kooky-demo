@@ -83,7 +83,7 @@
               </div>
             </article>
             <footer v-if="pendingTask" class="assignment-actions">
-              <button type="button" class="assignment-edit" @click="isEditingAssignments = true">修改分工</button>
+              <button type="button" class="assignment-edit" @click="openAssignmentEditor">修改分工</button>
               <button v-if="!isEditingAssignments" type="button" class="assignment-confirm" @click="confirmCurrentTask">确认当前任务</button>
               <div v-else class="assignment-waiting" role="status"><i></i><span>当前任务修改中</span></div>
             </footer>
@@ -124,7 +124,7 @@
 
       <aside v-if="(isTaskConversation && ['plan', 'base'].includes(activePanel)) || (!isTaskConversation && (activePanel === 'plan' || activePanel === 'base' || isEditingAssignments))" class="bridge-panel">
         <template v-if="activePanel === 'base'">
-          <header class="panel-head"><div><strong>{{ isTaskConversation ? '任务底座' : '项目底座' }}</strong><small>{{ isTaskConversation ? '当前任务引用的核心项目共识' : '当前项目长期共享的目标与协作规则' }}</small></div><div class="panel-head-actions"><button type="button" class="panel-close" aria-label="关闭侧边抽屉" title="关闭" @click="closeSidePanel">×</button><button type="button" class="base-detail-action" @click="showBaseEditor = true">底座详情<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div></header>
+          <header class="panel-head"><div><strong>{{ isTaskConversation ? '任务底座' : '项目底座' }}</strong><small>{{ isTaskConversation ? '当前任务引用的核心项目共识' : '当前项目长期共享的目标与协作规则' }}</small></div><div class="panel-head-actions"><button type="button" class="panel-close" aria-label="关闭侧边抽屉" title="关闭" @click="closeSidePanel">×</button><button type="button" class="base-detail-action" @click="openBaseEditor">底座详情<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1-1-4Z"/></svg></button></div></header>
           <div class="base-card"><b>{{ isTaskConversation ? '任务底座' : '项目底座' }} v{{ project.snapshot.version }}</b><p>{{ project.snapshot.projectBase }}</p><small>已被 {{ project.tasks.length || 3 }} 个任务引用</small></div>
           <section class="base-preview-section"><span>项目目标</span><p>完成可追溯的任务桥 Demo 主流程，让讨论、执行与经验沉淀形成闭环。</p></section>
           <section class="base-preview-section"><span>阻塞约束</span><p>任务必须具备可验证交付物与验收标准。</p></section>
@@ -311,6 +311,17 @@ watch(() => project.value.phase, (phase) => {
 function closeSidePanel() {
   activePanel.value = null
   isEditingAssignments.value = false
+}
+
+function openAssignmentEditor() {
+  showBaseEditor.value = false
+  activePanel.value = null
+  isEditingAssignments.value = true
+}
+
+function openBaseEditor() {
+  isEditingAssignments.value = false
+  showBaseEditor.value = true
 }
 
 function addContextMessage() {
