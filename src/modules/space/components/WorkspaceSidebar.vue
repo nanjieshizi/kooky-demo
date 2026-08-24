@@ -84,24 +84,49 @@
         />
         <!-- 个人页不恢复旧的助手/历史会话；只展示任务桥新生成的个人任务聊天。 -->
         <div v-show="uiStore.activePrimaryNav === 'solo-team'" class="personal-task-list">
-          <p class="personal-task-list-title">历史对话</p>
-          <TransitionGroup v-if="personalTaskChats.length" name="personal-task" tag="div" class="personal-task-entries">
-            <button
-              v-for="item in personalTaskChats"
-              :key="`${item.projectId}:${item.task.id}`"
-              type="button"
-              class="personal-task-entry"
-              :class="{ active: uiStore.activeSecondaryNav === personalTaskKey(item) }"
-              @click="openPersonalTaskChat(item)"
-            >
-              <span class="personal-task-entry-icon">✓</span>
-              <span class="personal-task-entry-copy">
-                <b>{{ item.task.title }}</b>
-                <small>{{ item.projectName }} · {{ item.task.status === 'done' ? '已完成' : '执行中' }}</small>
-              </span>
+          <section class="personal-task-group">
+            <button type="button" class="personal-task-group-title" @click="personalConversationGroups.collaboration = !personalConversationGroups.collaboration">
+              <span>协作对话</span><img src="@/assets/expand-collapse.svg" class="personal-task-group-toggle" :class="{ 'is-collapsed': !personalConversationGroups.collaboration }" alt="" aria-hidden="true" />
             </button>
-          </TransitionGroup>
-          <div v-else class="personal-history-empty" role="status">
+            <TransitionGroup v-if="personalConversationGroups.collaboration && collaborationTaskChats.length" name="personal-task" tag="div" class="personal-task-entries">
+              <button
+                v-for="item in collaborationTaskChats"
+                :key="`${item.projectId}:${item.task.id}`"
+                type="button"
+                class="personal-task-entry"
+                :class="{ active: uiStore.activeSecondaryNav === personalTaskKey(item) }"
+                @click="openPersonalTaskChat(item)"
+              >
+                <span class="personal-task-entry-icon">✓</span>
+                <span class="personal-task-entry-copy">
+                  <b>{{ item.task.title }}</b>
+                  <small>{{ item.projectName }} · {{ item.task.status === 'done' ? '已完成' : '执行中' }}</small>
+                </span>
+              </button>
+            </TransitionGroup>
+          </section>
+          <section class="personal-task-group">
+            <button type="button" class="personal-task-group-title" @click="personalConversationGroups.personal = !personalConversationGroups.personal">
+              <span>个人对话</span><img src="@/assets/expand-collapse.svg" class="personal-task-group-toggle" :class="{ 'is-collapsed': !personalConversationGroups.personal }" alt="" aria-hidden="true" />
+            </button>
+            <TransitionGroup v-if="personalConversationGroups.personal && personalOnlyTaskChats.length" name="personal-task" tag="div" class="personal-task-entries">
+              <button
+                v-for="item in personalOnlyTaskChats"
+                :key="`${item.projectId}:${item.task.id}`"
+                type="button"
+                class="personal-task-entry"
+                :class="{ active: uiStore.activeSecondaryNav === personalTaskKey(item) }"
+                @click="openPersonalTaskChat(item)"
+              >
+                <span class="personal-task-entry-icon">✓</span>
+                <span class="personal-task-entry-copy">
+                  <b>{{ item.task.title }}</b>
+                  <small>个人任务 · {{ item.task.status === 'done' ? '已完成' : '执行中' }}</small>
+                </span>
+              </button>
+            </TransitionGroup>
+          </section>
+          <div v-if="!personalTaskChats.length" class="personal-history-empty" role="status">
             <img :src="personalHistoryEmpty" alt="" />
             <p><strong>没有历史对话</strong><span>新建任务可选择关联项目</span></p>
           </div>
@@ -224,6 +249,9 @@ const notificationStore = useNotificationStore()
 const taskBridgeStore = useTaskBridgeStore()
 const cliUnreadCount = computed(() => notificationStore.unreadCount)
 const personalTaskChats = computed(() => taskBridgeStore.personalTasks)
+const collaborationTaskChats = computed(() => personalTaskChats.value.filter((item) => !String(item.projectId).startsWith('personal-task-')))
+const personalOnlyTaskChats = computed(() => personalTaskChats.value.filter((item) => String(item.projectId).startsWith('personal-task-')))
+const personalConversationGroups = ref({ collaboration: true, personal: true })
 
 const showCreateTeamDialog = ref(false)
 const showCreateSoloTeamDialog = ref(false)
@@ -1298,6 +1326,37 @@ function onCliAvatarClick() {
   font-size: 12px;
 }
 
+.personal-task-group + .personal-task-group {
+  margin-top: 12px;
+}
+
+.personal-task-group-title {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 6px 8px;
+  border: 0;
+  background: transparent;
+  color: #969daa;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.personal-task-group-toggle {
+  width: 7px;
+  height: 7px;
+  display: block;
+  object-fit: contain;
+  transition: transform .18s ease, opacity .18s ease;
+}
+
+.personal-task-group-toggle.is-collapsed {
+  transform: rotate(-90deg);
+}
+
 .personal-history-empty {
   flex: 1;
   display: flex;
@@ -1396,6 +1455,7 @@ function onCliAvatarClick() {
 .personal-task-entry-copy b {
   overflow: hidden;
   font-size: 14px;
+  font-weight: 400;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
