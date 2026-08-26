@@ -227,10 +227,14 @@ function handleOnePersonDissolved() {
   flex: 0 0 54px;
   display: flex;
   align-items: center;
-  padding: 0 20px;
-  border-bottom: 1px solid #eef0f3;
+  padding: 0 16px;
   color: #303746;
-  font-size: 15px;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.solo-empty-chat__header strong {
+  font-weight: 400;
 }
 
 .solo-empty-chat__body { flex: 1; min-height: 0; }

@@ -3,25 +3,25 @@
     <template v-if="!expanded">
       <header class="base-preview-topbar">
         <button type="button" class="base-back" @click="$emit('close')">← 返回项目</button>
-        <span>任务底座预览</span>
-        <button type="button" class="base-primary" @click="openEditor">编辑底座</button>
+        <span>任务背景预览</span>
+        <button type="button" class="base-primary" @click="openEditor">编辑项目背景</button>
       </header>
       <main class="base-preview-card">
-        <div class="base-preview-heading"><div><span>任务底座 v{{ project.snapshot.version }}</span><strong>{{ project.name }}</strong></div><small>已被 {{ project.tasks.length || 3 }} 个任务引用</small></div>
+        <div class="base-preview-heading"><div><span>任务背景 v{{ project.snapshot.version }}</span><strong>{{ project.name }}</strong></div><small>已被 {{ project.tasks.length || 3 }} 个任务引用</small></div>
         <section><span>项目目标</span><p>{{ project.snapshot.projectBase }}</p></section>
         <section class="base-preview-columns"><div><span>阻塞约束</span><p>任务必须有可验证交付物与验收标准</p></div><div><span>工作约定</span><p>关键结论需要保留来源并进入评审</p></div></section>
-        <footer><small>这是当前任务引用的核心内容。编辑后将进入完整底座工作台。</small><button type="button" @click="openEditor">编辑底座</button></footer>
+        <footer><small>这是当前任务引用的核心内容。编辑后将进入完整项目背景工作台。</small><button type="button" @click="openEditor">编辑项目背景</button></footer>
       </main>
     </template>
     <template v-else>
     <header class="base-topbar">
-      <div class="base-identity"><div class="base-title-line"><strong>任务底座</strong><em class="base-version-tag">v{{ project.snapshot.version }}</em></div><span>{{ project.name }} · 进行中 · 更新于刚刚</span></div>
-      <button type="button" class="base-close" aria-label="关闭任务底座" title="关闭任务底座" @click="$emit('close')">×</button>
+      <div class="base-identity"><div class="base-title-line"><strong>任务背景</strong><em class="base-version-tag">v{{ project.snapshot.version }}</em></div><span>{{ project.name }} · 进行中 · 更新于刚刚</span></div>
+      <button type="button" class="base-close" aria-label="关闭任务背景" title="关闭任务背景" @click="$emit('close')">×</button>
     </header>
     <div class="base-layout">
-      <nav class="base-nav" aria-label="任务底座目录"><button v-for="item in sections" :key="item.id" type="button" :class="{ active: activeSection === item.id }" @click="activeSection = item.id">{{ item.label }}</button></nav>
+      <nav class="base-nav" aria-label="任务背景目录"><button v-for="item in sections" :key="item.id" type="button" :class="{ active: activeSection === item.id }" @click="activeSection = item.id">{{ item.label }}</button></nav>
       <main class="base-content">
-        <div v-if="showAi" class="ai-proposal"><div><span>AI 建议</span><b>从最近项目讨论中提取了 4 条稳定共识</b><small>加入草稿后仍需由你保存，AI 不会直接改写任务底座。</small></div><button type="button" @click="applyAi">加入草稿</button></div>
+        <div v-if="showAi" class="ai-proposal"><div><span>AI 建议</span><b>从最近项目讨论中提取了 4 条稳定共识</b><small>加入草稿后仍需由你保存，AI 不会直接改写任务背景。</small></div><button type="button" @click="applyAi">加入草稿</button></div>
         <section v-if="taskSection" class="base-section task-base-section"><header><div><span>{{ taskSection.title }}</span><p>{{ taskSection.description }}</p></div><em v-if="activeSection === 'task_header'" class="base-status-tag">待确认</em></header><div class="task-base-grid"><article v-for="item in taskSection.items" :key="item.label" class="task-base-field"><small>{{ item.label }}</small><b>{{ item.value }}</b><p v-if="item.note">{{ item.note }}</p><span v-if="item.tag">{{ item.tag }}</span></article></div></section>
         <template v-if="activeSection === 'goal'">
           <section class="base-section"><header><div><span>项目目标</span><p>让任务从讨论中生成、执行并沉淀为可复用经验。</p></div><button v-if="!editing" type="button" @click="editing = true">编辑</button></header>
@@ -38,7 +38,7 @@
         <template v-else-if="activeSection === 'versions'"><section class="base-section"><header><div><span>版本记录</span><p>恢复历史版本会生成新的版本，不覆盖历史。</p></div></header><article v-for="item in versions" :key="item.version" class="version-row"><b>{{ item.version }}</b><span>{{ item.note }}</span><small>{{ item.time }} · 引用 {{ item.references }} 个任务</small><button type="button">查看差异</button></article></section></template>
       </main>
     </div>
-    <div class="base-bottom-actions"><button type="button" @click="showAi = !showAi">AI 提取</button><button type="button" class="base-primary" @click="editing = !editing">{{ editing ? '完成编辑' : '编辑底座' }}</button></div>
+    <div class="base-bottom-actions"><button type="button" @click="showAi = !showAi">AI 提取</button><button type="button" class="base-primary" @click="editing = !editing">{{ editing ? '完成编辑' : '编辑项目背景' }}</button></div>
     </template>
   </section>
 </template>
@@ -55,10 +55,10 @@ const taskSections = {
   scope:{title:'工作范围',description:'清楚区分本次任务要做、不做和成立前提。',items:[{label:'范围内',value:'竞品收集、比较维度、结论输出'},{label:'不在范围内',value:'产品最终立项与商业决策'},{label:'假设',value:'已有授权的公开资料可作为参考'}]},
   deliverables:{title:'交付物',description:'至少保留一个可验证交付物；需要评审的交付物会指定评审人。',items:[{label:'竞品调研报告',value:'文档 · 在线文档',note:'3 家竞品对比、核心结论与引用来源',tag:'需要评审'},{label:'结论摘要',value:'决策 · 项目讨论',note:'供原型与技术方案引用'}]},
   acceptance:{title:'验收标准',description:'所有必需项满足后，任务才能进入完成确认。',items:[{label:'完成定义',value:'可评审的竞品报告已提交并被负责人确认'},{label:'必需项 1',value:'覆盖 3 家竞品与统一比较维度',tag:'必需'},{label:'必需项 2',value:'每项结论保留来源引用',tag:'必需'},{label:'评审人',value:'我'}]},
-  constraints:{title:'执行约束',description:'阻塞约束未满足时，AI 不能创建或开始高风险执行。',items:[{label:'阻塞 · 质量',value:'必须具备可验证交付物与验收标准',tag:'来自任务底座'},{label:'提醒 · 时间',value:'8月20日前完成首轮评审',tag:'来自项目讨论'}]},
-  context:{title:'上下文与参考资料',description:'所有 AI 读取的内容均可追溯到来源，并受访问范围约束。',items:[{label:'绑定底座版本',value:`任务底座 v${props.project.snapshot.version}`},{label:'讨论来源',value:'@团队助理生成调研任务分工',tag:'来源'},{label:'参考资料',value:'竞品资料库 · 项目成员可见',tag:'可访问'}]},
+  constraints:{title:'执行约束',description:'阻塞约束未满足时，AI 不能创建或开始高风险执行。',items:[{label:'阻塞 · 质量',value:'必须具备可验证交付物与验收标准',tag:'来自任务背景'},{label:'提醒 · 时间',value:'8月20日前完成首轮评审',tag:'来自项目讨论'}]},
+  context:{title:'上下文与参考资料',description:'所有 AI 读取的内容均可追溯到来源，并受访问范围约束。',items:[{label:'绑定背景版本',value:`任务背景 v${props.project.snapshot.version}`},{label:'讨论来源',value:'@团队助理生成调研任务分工',tag:'来源'},{label:'参考资料',value:'竞品资料库 · 项目成员可见',tag:'可访问'}]},
   dependencies:{title:'依赖关系',description:'显示阻塞、被阻塞和提供信息的关系。',items:[{label:'提供信息',value:'为绘制原型提供竞品结论'},{label:'阻塞于',value:'无阻塞依赖',tag:'已满足'}]},
-  permissions:{title:'可见性与权限',description:'任务卡片、底座、执行记录和输出分别按权限展示。',items:[{label:'任务卡片',value:'项目成员可见'},{label:'任务底座',value:'任务参与者可见'},{label:'执行记录',value:'仅自己可见'},{label:'输出',value:'项目成员可见'}]},
+  permissions:{title:'可见性与权限',description:'任务卡片、背景、执行记录和输出分别按权限展示。',items:[{label:'任务卡片',value:'项目成员可见'},{label:'任务背景',value:'任务参与者可见'},{label:'执行记录',value:'仅自己可见'},{label:'输出',value:'项目成员可见'}]},
   ai_policy:{title:'AI 执行规则',description:'AI 只能在授权上下文内建议和起草，关键动作必须由人确认。',items:[{label:'允许',value:'提取、总结、建议、起草、检查、冲突检测'},{label:'需人工确认',value:'创建任务、分配负责人、修改范围、发布产出'},{label:'禁止',value:'静默覆盖内容、静默扩大范围、未评审即标记完成'}]},
 }
 const activeTask = computed(() => props.task || props.project.tasks?.[0] || {})
@@ -76,7 +76,7 @@ const taskSection = computed(() => {
     objective: { title: '任务目标', description: '说明为什么做、要解决什么问题，以及与项目目标的关系。', items: [
       { label: '一句话目标', value: task.goal || task.acceptance || '待补充任务目标' },
       { label: '背景', value: props.project.snapshot.projectBase },
-      { label: '与项目目标关系', value: `引用「${props.project.name}」项目底座 v${props.project.snapshot.version}` },
+      { label: '与项目目标关系', value: `引用「${props.project.name}」项目背景 v${props.project.snapshot.version}` },
     ] },
     deliverables: { title: '交付物', description: '至少保留一个可验证交付物；需要评审的交付物会指定评审人。', items: [
       { label: '交付物', value: task.deliverable || '待补充交付物', note: task.acceptance || '请补充可验证的交付内容', tag: '需要评审' },
@@ -90,7 +90,7 @@ const taskSection = computed(() => {
   return dynamicSections[activeSection.value] || taskSections[activeSection.value]
 })
 const model = reactive({ name: props.project.name, goal: '完成可追溯的任务桥 Demo 主流程', background: '协作讨论中的共识需要转化为可执行任务，并在执行后沉淀到后续工作中。', success:['任务可挂载项目','个人任务同步生成','执行回填可追溯'] })
-const constraints = reactive([{id:1,type:'质量',level:'阻塞',text:'所有任务必须给出可验证交付物与验收标准。',source:'任务底座',until:'项目结束'},{id:2,type:'时间',level:'提醒',text:'调研任务应在本周内完成首轮评审。',source:'项目讨论',until:'8月22日'}])
+const constraints = reactive([{id:1,type:'质量',level:'阻塞',text:'所有任务必须给出可验证交付物与验收标准。',source:'任务背景',until:'项目结束'},{id:2,type:'时间',level:'提醒',text:'调研任务应在本周内完成首轮评审。',source:'项目讨论',until:'8月22日'}])
 const people = [{name:'我',role:'项目负责人',permission:'可编辑',work:'确认目标、验收与关键决策'},{name:'产品数字人',role:'调研协作',permission:'可执行',work:'收集证据并形成竞品结论'},{name:'设计数字人',role:'原型协作',permission:'可执行',work:'产出核心流程与异常状态原型'}]
 const agreements = [{title:'命名规则',text:'任务使用“动词 + 交付物”命名。'},{title:'交付格式',text:'关键结论需可评审、可引用。'},{title:'状态定义',text:'待确认 / 执行中 / 待回填 / 已沉淀。'},{title:'完成前必须满足',text:'交付物、必需验收项与评审意见均完整。'}]
 const decisions = [{date:'08.18',title:'任务创建前必须确认快照',text:'避免任务在目标、范围不清晰时直接进入执行。'},{date:'08.16',title:'阻塞级约束自动带入快照',text:'确保质量要求不因任务拆分而丢失。'}]
@@ -99,7 +99,7 @@ function addConstraint(){ constraints.push({id:Date.now(),type:'资源',level:'�
 function openEditor(){ expanded.value=true; editing.value=true }
 function applyAi(){ model.success.push('关键结论需注明讨论来源'); showAi.value=false; editing.value=true }
 function reset(){ editing.value=false }
-function save(){ props.project.name=model.name; props.project.snapshot.version += 1; editing.value=false; emit('saved', `任务底座已更新，版本已升级为 v${props.project.snapshot.version}`) }
+function save(){ props.project.name=model.name; props.project.snapshot.version += 1; editing.value=false; emit('saved', `任务背景已更新，版本已升级为 v${props.project.snapshot.version}`) }
 </script>
 
 <style scoped>

@@ -305,7 +305,7 @@ export const useTaskBridgeStore = defineStore('taskBridge', {
       project.discussion.push({
         id: `echo-${Date.now()}`,
         type: 'echo',
-        text: `执行回声已写入项目底座 v${project.snapshot.version}：${project.echoDraft}`,
+        text: `执行回声已写入项目背景 v${project.snapshot.version}：${project.echoDraft}`,
       })
       return project
     },

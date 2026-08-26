@@ -1,10 +1,10 @@
 <template>
   <Teleport to="body">
     <div v-if="visible" class="project-backdrop" role="presentation" @mousedown.self="requestClose">
-      <section class="project-modal" role="dialog" aria-modal="true" aria-label="创建项目底座">
+      <section class="project-modal" role="dialog" aria-modal="true" aria-label="创建项目背景">
         <header class="project-header">
           <div>
-            <h2>创建项目底座</h2>
+            <h2>创建项目背景</h2>
             <p>建立项目长期共享的目标、规则与协作共识</p>
           </div>
           <button ref="closeButton" class="icon-close" aria-label="关闭" @click="requestClose">×</button>
@@ -53,13 +53,13 @@
           </main>
 
           <aside class="check-sidebar">
-            <div class="check-header"><h3>发布前检查</h3><p>底座发布后将成为项目公共上下文</p></div>
+            <div class="check-header"><h3>发布前检查</h3><p>项目背景发布后将成为项目公共上下文</p></div>
             <div class="check-list"><div v-for="check in checks" :key="check.label" class="check-row"><span class="check-icon" :class="check.status">{{ check.status === 'warning' ? '!' : '✓' }}</span><div><strong>{{ check.label }}</strong><small>{{ check.hint }}</small></div></div></div>
-            <div class="freeze-card"><h4>发布后会发生什么？</h4><ul><li>生成项目底座 v1</li><li>成为任务创建时的可选上下文</li><li>新任务可引用目标与约束</li><li>后续修改会生成新版本</li></ul></div>
+            <div class="freeze-card"><h4>发布后会发生什么？</h4><ul><li>生成项目背景 v1</li><li>成为任务创建时的可选上下文</li><li>新任务可引用目标与约束</li><li>后续修改会生成新版本</li></ul></div>
           </aside>
         </div>
 
-        <footer class="project-footer"><span>草稿自动保存于刚刚 · 项目成员可见</span><div><button class="secondary-button" @click="saveDraft">保存草稿</button><button class="primary-button" @click="createBase">创建项目底座</button></div></footer>
+        <footer class="project-footer"><span>草稿自动保存于刚刚 · 项目成员可见</span><div><button class="secondary-button" @click="saveDraft">保存草稿</button><button class="primary-button" @click="createBase">创建项目背景</button></div></footer>
         <div v-if="toast" class="modal-toast" role="status">{{ toast }}</div>
       </section>
     </div>
@@ -81,7 +81,7 @@ const toast = ref('')
 const closeButton = ref(null)
 const errors = reactive({ name: '', goal: '', constraints: '', members: '' })
 const constraintOptions = ['讨论来源必须可追溯', '任务创建必须人工确认', '项目上下文按版本冻结', '私密内容不可越权', '自定义约束']
-const form = reactive({ name: '任务桥 · Task Bridge', goal: '让团队把讨论中的共识，稳定地转化为可执行、可验收的任务。', background: '', users: '产品、设计与研发团队', success: '', inScope: '讨论共识沉淀、任务拆解与验收标准', outScope: '替代团队决策、自动发布未经确认的任务', constraints: ['讨论来源必须可追溯', '任务创建必须人工确认', '项目上下文按版本冻结', '私密内容不可越权'], delivery: 'HTML 原型 + Markdown 规格', review: '提交 → 产品评审 → 修改 → 通过', members: [{ id: 'contact-owner', initial: '王', name: '王靖博', role: '项目负责人', responsibility: '管理目标、决策与底座版本', type: 'contact' }, { id: 'agent-product', initial: '产', name: '产品数字人', role: '调研协作', responsibility: '负责竞品调研与结论整理', type: 'agent' }, { id: 'agent-design', initial: '设', name: '设计数字人', role: '原型协作', responsibility: '负责流程、原型与体验评审', type: 'agent' }] })
+const form = reactive({ name: '任务桥 · Task Bridge', goal: '让团队把讨论中的共识，稳定地转化为可执行、可验收的任务。', background: '', users: '产品、设计与研发团队', success: '', inScope: '讨论共识沉淀、任务拆解与验收标准', outScope: '替代团队决策、自动发布未经确认的任务', constraints: ['讨论来源必须可追溯', '任务创建必须人工确认', '项目上下文按版本冻结', '私密内容不可越权'], delivery: 'HTML 原型 + Markdown 规格', review: '提交 → 产品评审 → 修改 → 通过', members: [{ id: 'contact-owner', initial: '王', name: '王靖博', role: '项目负责人', responsibility: '管理目标、决策与项目背景版本', type: 'contact' }, { id: 'agent-product', initial: '产', name: '产品数字人', role: '调研协作', responsibility: '负责竞品调研与结论整理', type: 'agent' }, { id: 'agent-design', initial: '设', name: '设计数字人', role: '原型协作', responsibility: '负责流程、原型与体验评审', type: 'agent' }] })
 
 const checks = computed(() => [
   { label: '项目名称与目标', status: form.name && form.goal ? 'passed' : 'warning', hint: form.name && form.goal ? '信息完整' : '需要填写' },
@@ -100,9 +100,9 @@ function toggleConstraint(option) { const index = form.constraints.indexOf(optio
 function generateSuggestion() { aiLoading.value = true; window.setTimeout(() => { aiLoading.value = false; showSuggestion.value = true }, 650) }
 function adoptSuggestion() { form.goal = '让团队把讨论中的共识，稳定地转化为可执行、可验收的任务。'; showSuggestion.value = false; dirty.value = true; showToast('已采用 AI 建议') }
 function validate() { errors.name = form.name.trim() ? '' : '请输入项目名称'; errors.goal = form.goal.trim() ? '' : '请输入一句话目标'; errors.constraints = form.constraints.length ? '' : '至少选择一条核心约束'; errors.members = form.members.length ? '' : '至少添加一名项目成员'; return !errors.name && !errors.goal && !errors.constraints && !errors.members }
-function saveDraft() { dirty.value = false; showToast('项目底座草稿已保存') }
-function createBase() { if (!validate()) { showToast('请先补充必填信息'); return }; dirty.value = false; emit('created', { ...form, version: 'v1' }); showToast('项目底座已创建，当前版本为 v1'); window.setTimeout(() => emit('update:visible', false), 700) }
-function requestClose() { if (dirty.value && !window.confirm('项目底座尚未保存，确定退出吗？')) return; emit('update:visible', false) }
+function saveDraft() { dirty.value = false; showToast('项目背景草稿已保存') }
+function createBase() { if (!validate()) { showToast('请先补充必填信息'); return }; dirty.value = false; emit('created', { ...form, version: 'v1' }); showToast('项目背景已创建，当前版本为 v1'); window.setTimeout(() => emit('update:visible', false), 700) }
+function requestClose() { if (dirty.value && !window.confirm('项目背景尚未保存，确定退出吗？')) return; emit('update:visible', false) }
 </script>
 
 <style scoped>

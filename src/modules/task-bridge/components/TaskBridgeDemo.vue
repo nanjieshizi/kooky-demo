@@ -6,7 +6,7 @@
       </div>
       <div class="bridge-actions">
         <button type="button" :class="{ active: activePanel === 'plan' }" @click="activePanel = 'plan'">团队计划<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 5.5v16M8 7h8M8 11h8"/></svg></button>
-        <button type="button" :class="{ active: activePanel === 'base' }" @click="activePanel = 'base'">{{ isTaskConversation ? '任务底座' : '项目底座' }}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg></button>
+        <button type="button" :class="{ active: activePanel === 'base' }" @click="activePanel = 'base'">{{ isTaskConversation ? '任务背景' : '项目背景' }}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg></button>
       </div>
     </header>
 
@@ -15,7 +15,7 @@
         <div ref="conversationScrollRef" class="conversation-scroll">
           <section v-if="isTaskConversation" class="task-conversation">
             <div class="task-conversation-context">
-              <span>任务对话</span><b>{{ activeTask.title }}</b><small>挂载于 {{ project.name }} · 任务底座 v{{ project.snapshot.version }}</small>
+              <span>任务对话</span><b>{{ activeTask.title }}</b><small>挂载于 {{ project.name }} · 任务背景 v{{ project.snapshot.version }}</small>
             </div>
             <template v-for="item in activeTask.messages" :key="item.id">
               <div v-if="item.type === 'system'" class="system-event">{{ item.text }}</div>
@@ -30,7 +30,7 @@
             </template>
             <section v-if="activeTask && activeTask.backfillDemoStep >= 1" class="task-backfill-card">
               <header class="backfill-card-header"><div><div class="backfill-card-kicker"><strong>交付回填</strong><em>待提交</em></div><small>提交后，接收方会按验收标准核对产物。</small></div></header>
-              <section class="backfill-context"><span>当前任务</span><strong>{{ activeTask.title }}</strong><small>{{ project.name }} · 任务底座 v{{ project.snapshot.version }}</small></section>
+              <section class="backfill-context"><span>当前任务</span><strong>{{ activeTask.title }}</strong><small>{{ project.name }} · 任务背景 v{{ project.snapshot.version }}</small></section>
               <section class="backfill-section backfill-deliverable"><div class="backfill-section-heading"><div><span class="backfill-section-label">交付产物 <b>必填</b></span><small>用于接收方验收</small></div></div><div class="task-backfill-artifact"><div class="task-backfill-artifact-file"><span class="task-file-icon">M</span><div><strong>{{ activeTask.backfill.deliverable || '添加产物文件' }}</strong><small>Markdown · v1 · 待提交</small></div></div><button type="button" class="task-backfill-artifact-edit" aria-label="修改产物" title="修改产物" @click="editingBackfillArtifact = !editingBackfillArtifact"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1-1-4Z"/></svg></button></div><input v-if="editingBackfillArtifact" v-model="activeTask.backfill.deliverable" class="backfill-inline-input" placeholder="输入或修改产物名称" /></section>
               <section class="backfill-section backfill-decision"><div class="backfill-section-heading"><div><span class="backfill-section-label">完成结果 <b>必填</b></span><small>选择最符合实际产出的状态</small></div></div><div class="completion-result"><div class="completion-result-labels" role="group" aria-label="完成结果"><button type="button" :class="{ active: completionResultValue === 0 }" :aria-pressed="completionResultValue === 0" @click="activeTask.backfill.completionResult = 0">已完成</button><button type="button" :class="{ active: completionResultValue === 1 }" :aria-pressed="completionResultValue === 1" @click="activeTask.backfill.completionResult = 1">部分完成</button><button type="button" :class="{ active: completionResultValue === 2 }" :aria-pressed="completionResultValue === 2" @click="activeTask.backfill.completionResult = 2">没完成</button></div><div class="completion-result-control" :style="{ '--completion-progress': completionResultValue === 0 ? '33.333%' : completionResultValue === 1 ? '66.666%' : '100%' }"><input v-model.number="activeTask.backfill.completionResult" class="completion-result-range" type="range" min="0" max="2" step="1" :aria-valuetext="completionResultInfo(activeTask.backfill.completionResult).label" aria-label="完成结果" /><span class="completion-result-control-label">{{ completionResultInfo(activeTask.backfill.completionResult).label }}</span></div><div class="completion-result-current" :class="`is-result-${completionResultValue}`"><strong>{{ completionResultInfo(activeTask.backfill.completionResult).label }}</strong><span>{{ completionResultInfo(activeTask.backfill.completionResult).description }}</span></div><div v-if="completionResultValue === 1" class="completion-result-fields"><label class="backfill-field"><span>已完成内容</span><textarea v-model="activeTask.backfill.completed" rows="2" placeholder="填写已完成的内容" /></label><label class="backfill-field"><span>未完成内容</span><textarea v-model="activeTask.backfill.incomplete" rows="2" placeholder="填写仍未完成的内容" /></label><label class="backfill-field"><span>下一步行动</span><textarea v-model="activeTask.backfill.nextAction" rows="2" placeholder="填写下一步处理方式" /></label></div><div v-else-if="completionResultValue === 2" class="completion-result-fields"><label class="backfill-field"><span>未完成原因</span><textarea v-model="activeTask.backfill.incompleteReason" rows="2" placeholder="填写未形成有效产出的原因" /></label><label class="backfill-field"><span>当前阻塞事项</span><textarea v-model="activeTask.backfill.blockers" rows="2" placeholder="填写当前阻塞事项" /></label><label class="backfill-field"><span>后续处理方式</span><textarea v-model="activeTask.backfill.nextAction" rows="2" placeholder="填写后续处理方式" /></label></div></div></section>
               <details class="backfill-extra"><summary>补充说明</summary><div><label class="backfill-field"><span>已知问题</span><textarea v-model="activeTask.backfill.issues" rows="2" placeholder="可填写未覆盖内容或后续风险" /></label><label class="backfill-field"><span>提交说明</span><textarea v-model="activeTask.backfill.effective" rows="2" placeholder="补充本次提交需要接收方关注的内容" /></label></div></details>
@@ -66,7 +66,7 @@
             </header>
             <div class="assignment-summary">
               <span class="assignment-summary-dot"></span>
-              {{ project.phase === 'draft' ? `已基于任务底座 v${project.snapshot.version} 生成，确认后自动挂载项目并同步个人任务。` : `已生成 ${project.tasks.length} / 3 项任务。` }}
+              {{ project.phase === 'draft' ? `已基于任务背景 v${project.snapshot.version} 生成，确认后自动挂载项目并同步个人任务。` : `已生成 ${project.tasks.length} / 3 项任务。` }}
             </div>
             <article class="assignment-row assignment-snapshot-card">
               <span class="assignment-number">{{ String(project.tasks.indexOf(pendingTask) + 1).padStart(2, '0') }}</span>
@@ -120,8 +120,8 @@
 
       <aside v-if="(isTaskConversation && ['plan', 'base'].includes(activePanel)) || (!isTaskConversation && (activePanel === 'plan' || activePanel === 'base' || isEditingAssignments))" class="bridge-panel">
         <template v-if="activePanel === 'base'">
-          <header class="panel-head"><div><strong>{{ isTaskConversation ? '任务底座' : '项目底座' }}</strong><small>{{ isTaskConversation ? '当前任务引用的核心项目共识' : '当前项目长期共享的目标与协作规则' }}</small></div><div class="panel-head-actions"><button type="button" class="panel-close" aria-label="关闭侧边抽屉" title="关闭" @click="closeSidePanel">×</button><button type="button" class="base-detail-action" @click="openBaseEditor">底座详情<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1-1-4Z"/></svg></button></div></header>
-          <div class="base-card"><b>{{ isTaskConversation ? '任务底座' : '项目底座' }} v{{ project.snapshot.version }}</b><p>{{ project.snapshot.projectBase }}</p><small>已被 {{ project.tasks.length || 3 }} 个任务引用</small></div>
+          <header class="panel-head"><div><strong>{{ isTaskConversation ? '任务背景' : '项目背景' }}</strong><small>{{ isTaskConversation ? '当前任务引用的核心项目共识' : '当前项目长期共享的目标与协作规则' }}</small></div><div class="panel-head-actions"><button type="button" class="panel-close" aria-label="关闭侧边抽屉" title="关闭" @click="closeSidePanel">×</button><button type="button" class="base-detail-action" @click="openBaseEditor">{{ isTaskConversation ? '任务背景详情' : '项目背景详情' }}<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1-1-4Z"/></svg></button></div></header>
+          <div class="base-card"><b>{{ isTaskConversation ? '任务背景' : '项目背景' }} v{{ project.snapshot.version }}</b><p>{{ project.snapshot.projectBase }}</p><small>已被 {{ project.tasks.length || 3 }} 个任务引用</small></div>
           <section class="base-preview-section"><span>项目目标</span><p>完成可追溯的任务桥 Demo 主流程，让讨论、执行与经验沉淀形成闭环。</p></section>
           <section class="base-preview-section"><span>阻塞约束</span><p>任务必须具备可验证交付物与验收标准。</p></section>
           <section class="base-preview-section"><span>团队成员</span><div class="base-member-stack" aria-label="团队成员头像"><span><img :src="memberAvatars.owner" alt="我" /></span><span><img :src="memberAvatars.research" alt="产品数字人" /></span><span><img :src="memberAvatars.design" alt="设计数字人" /></span><button type="button" class="base-member-add" aria-label="添加团队成员">+</button></div><div class="base-mini-people"><b>我 <small>项目负责人</small></b><b>产品数字人 <small>调研协作</small></b><b>设计数字人 <small>原型协作</small></b></div></section>
@@ -133,8 +133,8 @@
           <div v-if="project.echoPublished" class="echo-success">执行回声已沉淀；下一次同类任务会自动携带这条经验。</div>
         </template>
         <template v-else-if="!isTaskConversation && pendingTask && isEditingAssignments">
-          <header class="panel-head"><div><strong>确认任务快照</strong><small>来自项目讨论 · 任务底座 v{{ project.snapshot.version }}</small></div><div class="panel-head-actions"><button type="button" class="panel-close" aria-label="关闭侧边抽屉" title="关闭" @click="closeSidePanel">×</button></div></header>
-          <div class="context-note"><b>任务底座 v{{ project.snapshot.version }}</b><span>当前项目：{{ project.name }}</span><span>{{ project.snapshot.projectBase }}</span></div>
+          <header class="panel-head"><div><strong>确认任务快照</strong><small>来自项目讨论 · 任务背景 v{{ project.snapshot.version }}</small></div><div class="panel-head-actions"><button type="button" class="panel-close" aria-label="关闭侧边抽屉" title="关闭" @click="closeSidePanel">×</button></div></header>
+          <div class="context-note"><b>任务背景 v{{ project.snapshot.version }}</b><span>当前项目：{{ project.name }}</span><span>{{ project.snapshot.projectBase }}</span></div>
           <article class="draft-task-card">
             <template v-if="pendingTask">
               <div class="draft-task-title"><strong>任务 {{ String(project.tasks.indexOf(pendingTask) + 1).padStart(2, '0') }}</strong><span>待确认快照</span></div>
@@ -152,7 +152,7 @@
                     <textarea v-model="message.text" rows="2" aria-label="引用消息内容"></textarea>
                   </article>
                 </div>
-                <p v-else class="snapshot-context-empty">未选择具体消息，将仅使用项目底座中的目标与约束。</p>
+                <p v-else class="snapshot-context-empty">未选择具体消息，将仅使用项目背景中的目标与约束。</p>
               </section>
               <section class="snapshot-context-editor">
                 <div class="snapshot-context-editor__head"><div><strong>引用的约束</strong><small>这些约束会影响任务执行与验收，可直接修改</small></div><button type="button" class="snapshot-context-add" @click="addContextConstraint">+ 约束</button></div>
@@ -160,7 +160,7 @@
                   <label v-for="(constraint, index) in pendingTask.contextConstraints" :key="index"><span>{{ String(index + 1).padStart(2, '0') }}</span><input v-model="pendingTask.contextConstraints[index]" aria-label="引用约束" /><button type="button" aria-label="移除引用约束" @click="removeContextConstraint(index)">×</button></label>
                 </div>
               </section>
-              <small class="snapshot-source">来源：项目讨论 · 已绑定任务底座 v{{ project.snapshot.version }}</small>
+              <small class="snapshot-source">来源：项目讨论 · 已绑定任务背景 v{{ project.snapshot.version }}</small>
             </template>
           </article>
           <footer class="panel-footer"><button type="button" class="quiet" @click="isEditingAssignments = false">返回卡片</button><button type="button" class="primary" @click="confirmCurrentTask">确认当前任务</button></footer>
@@ -256,7 +256,7 @@ function completionResultInfo(value) {
 const demoFlow = [
   {
     user: '@团队助理，基于本次项目目标生成调研任务分工，明确负责人、协作数字人、截止时间和验收标准。',
-    assistant: '收到。我已根据项目底座和当前讨论拆分出 3 项可执行工作，并预填负责人、协作方与验收标准。请核对任务快照后确认加入团队计划。',
+    assistant: '收到。我已根据项目背景和当前讨论拆分出 3 项可执行工作，并预填负责人、协作方与验收标准。请核对任务快照后确认加入团队计划。',
   },
   {
     user: '请继续明确每项任务的交付物和验收标准。',
@@ -307,7 +307,7 @@ watch(pendingTask, ensureTaskSnapshotContext, { immediate: true })
 watch(activeTask, ensureTaskArtifact, { immediate: true })
 
 watch(isTaskConversation, (isTask) => {
-  // 任务对话默认不展示右侧抽屉；仍可按需打开团队计划或任务底座。
+  // 任务对话默认不展示右侧抽屉；仍可按需打开团队计划或任务背景。
   activePanel.value = isTask
     ? (project.value.showPlanAfterBackfill ? 'plan' : null)
     : 'plan'
@@ -492,7 +492,7 @@ function publishBackfill() {
 
 function publishEcho() {
   bridgeStore.publishEcho(conversationId.value)
-  flash(`执行回声已写入任务底座 v${project.value.snapshot.version}`)
+  flash(`执行回声已写入任务背景 v${project.value.snapshot.version}`)
 }
 </script>
 

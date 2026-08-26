@@ -275,8 +275,9 @@ async function confirmRemoveThreadDialog() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px 0 10px;
-  height: 48px;
+  padding: 0 14px 0 16px;
+  height: 54px;
+  min-height: 54px;
   flex-shrink: 0;
   background: #fff;
 }
@@ -309,7 +310,7 @@ async function confirmRemoveThreadDialog() {
   cursor: pointer;
   padding: 0 8px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .employee-session-trigger:hover {
