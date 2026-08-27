@@ -4,13 +4,13 @@
       <header class="base-preview-topbar">
         <button type="button" class="base-back" @click="$emit('close')">← 返回项目</button>
         <span>任务背景预览</span>
-        <button type="button" class="base-primary" @click="openEditor">编辑项目背景</button>
+        <button type="button" class="base-primary" @click="openEditor">编辑协作背景</button>
       </header>
       <main class="base-preview-card">
         <div class="base-preview-heading"><div><span>任务背景 v{{ project.snapshot.version }}</span><strong>{{ project.name }}</strong></div><small>已被 {{ project.tasks.length || 3 }} 个任务引用</small></div>
         <section><span>项目目标</span><p>{{ project.snapshot.projectBase }}</p></section>
         <section class="base-preview-columns"><div><span>阻塞约束</span><p>任务必须有可验证交付物与验收标准</p></div><div><span>工作约定</span><p>关键结论需要保留来源并进入评审</p></div></section>
-        <footer><small>这是当前任务引用的核心内容。编辑后将进入完整项目背景工作台。</small><button type="button" @click="openEditor">编辑项目背景</button></footer>
+        <footer><small>这是当前任务引用的核心内容。编辑后将进入完整协作背景工作台。</small><button type="button" @click="openEditor">编辑协作背景</button></footer>
       </main>
     </template>
     <template v-else>
@@ -38,7 +38,7 @@
         <template v-else-if="activeSection === 'versions'"><section class="base-section"><header><div><span>版本记录</span><p>恢复历史版本会生成新的版本，不覆盖历史。</p></div></header><article v-for="item in versions" :key="item.version" class="version-row"><b>{{ item.version }}</b><span>{{ item.note }}</span><small>{{ item.time }} · 引用 {{ item.references }} 个任务</small><button type="button">查看差异</button></article></section></template>
       </main>
     </div>
-    <div class="base-bottom-actions"><button type="button" @click="showAi = !showAi">AI 提取</button><button type="button" class="base-primary" @click="editing = !editing">{{ editing ? '完成编辑' : '编辑项目背景' }}</button></div>
+    <div class="base-bottom-actions"><button type="button" @click="showAi = !showAi">AI 提取</button><button type="button" class="base-primary" @click="editing = !editing">{{ editing ? '完成编辑' : '编辑协作背景' }}</button></div>
     </template>
   </section>
 </template>
@@ -76,7 +76,7 @@ const taskSection = computed(() => {
     objective: { title: '任务目标', description: '说明为什么做、要解决什么问题，以及与项目目标的关系。', items: [
       { label: '一句话目标', value: task.goal || task.acceptance || '待补充任务目标' },
       { label: '背景', value: props.project.snapshot.projectBase },
-      { label: '与项目目标关系', value: `引用「${props.project.name}」项目背景 v${props.project.snapshot.version}` },
+      { label: '与项目目标关系', value: `引用「${props.project.name}」协作背景 v${props.project.snapshot.version}` },
     ] },
     deliverables: { title: '交付物', description: '至少保留一个可验证交付物；需要评审的交付物会指定评审人。', items: [
       { label: '交付物', value: task.deliverable || '待补充交付物', note: task.acceptance || '请补充可验证的交付内容', tag: '需要评审' },

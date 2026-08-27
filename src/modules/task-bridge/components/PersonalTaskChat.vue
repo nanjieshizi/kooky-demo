@@ -10,7 +10,7 @@
         </div>
       </header>
       <div class="task-chat-scroll">
-      <div class="task-origin">来自 {{ project.name }} · 项目背景 v{{ project.snapshot.version }}</div>
+      <div class="task-origin">来自 {{ project.name }} · 协作背景 v{{ project.snapshot.version }}</div>
       <template v-for="message in task.messages" :key="message.id">
         <div v-if="message.type === 'system'" class="system-event">{{ message.text }}</div>
         <article v-else class="bridge-message" :class="`is-${message.type}`">

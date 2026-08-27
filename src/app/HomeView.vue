@@ -153,7 +153,7 @@
     <!-- 定时任务创建/编辑弹窗 -->
     <ScheduleCreateDialog />
 
-    <!-- 新建项目：网页 demo 中进入项目背景创建弹窗 -->
+    <!-- 新建项目：网页 demo 中进入协作背景创建弹窗 -->
     <CreateProjectBaseModal
       :visible="showCreateTeamDialog"
       @update:visible="showCreateTeamDialog = $event"
