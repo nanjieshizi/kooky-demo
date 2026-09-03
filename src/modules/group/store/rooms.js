@@ -10,10 +10,33 @@ import { useFileStore } from '@/modules/file/store.js'
 import { isGroupConversationReadActive } from './readState.js'
 import { buildGroupConversationFromEvent } from '@/shared/im-http/utils/conversationListItems.mjs'
 
+const DELETED_PROJECT_CONVERSATIONS_STORAGE_KEY = 'group-deleted-project-conversations'
+
+function readDeletedProjectConversationIds() {
+  if (typeof window === 'undefined') return []
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(DELETED_PROJECT_CONVERSATIONS_STORAGE_KEY) || '[]')
+    return Array.isArray(parsed) ? parsed.map((id) => String(id)) : []
+  } catch {
+    return []
+  }
+}
+
+function persistDeletedProjectConversationIds(ids) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(DELETED_PROJECT_CONVERSATIONS_STORAGE_KEY, JSON.stringify(ids))
+  } catch {
+    // Demo 在无法使用 localStorage 时仍保持当前会话内的删除状态。
+  }
+}
+
 export const groupConversationsState = () => ({
   conversations: [],
   currentConversationId: null,
   currentSpaceId: null,
+  // 仅用于本地 Demo：禁止被用户删除的项目被会话刷新重新插回列表。
+  deletedProjectConversationIds: readDeletedProjectConversationIds(),
   isCreatingTeam: false,
   teamIntroCompletedByConversationId: {},
   teamMemberAgentIdsByConversationId: {},
@@ -25,7 +48,8 @@ const config = {
   conversationType: ROOM_TYPES.GROUP_CHAT,
   logPrefix: LOG_PREFIX,
   onLoadConversationsFilter(filteredConversations) {
-    return filteredConversations
+    const deletedProjectIds = new Set(this.deletedProjectConversationIds || [])
+    return filteredConversations.filter((item) => !deletedProjectIds.has(String(item.conversationId)))
   },
 }
 
@@ -112,6 +136,13 @@ export const groupConversationsActions = {
     return roomsActions.setCurrentSpaceId(this, id)
   },
 
+  markProjectDeleted(conversationId) {
+    const id = String(conversationId || '')
+    if (!id || this.deletedProjectConversationIds.includes(id)) return
+    this.deletedProjectConversationIds.push(id)
+    persistDeletedProjectConversationIds(this.deletedProjectConversationIds)
+  },
+
   startCreatingTeam() {
     return roomsActions.startCreatingTeam(this)
   },
@@ -143,6 +174,7 @@ export const groupConversationsActions = {
     if (rooms?.action === 'upsert') {
       const nextConversation = rooms.conversation || buildGroupConversationFromEvent(event)
       if (nextConversation) {
+        if (this.deletedProjectConversationIds.includes(String(nextConversation.conversationId))) return
         roomsActions.upsertConversation(this, nextConversation)
         return
       }
@@ -171,6 +203,7 @@ export const groupConversationsActions = {
   async _onConversationCreated({ conversationId, event, conversation }) {
     const nextConversation = conversation || buildGroupConversationFromEvent(event)
     if (nextConversation) {
+      if (this.deletedProjectConversationIds.includes(String(nextConversation.conversationId))) return
       roomsActions.upsertConversation(this, nextConversation)
     } else if (conversationId) {
       await this._loadConversations()

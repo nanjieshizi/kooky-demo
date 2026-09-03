@@ -42,8 +42,95 @@ const DEFAULT_TASK_CONSTRAINTS = Object.freeze([
   '发现阻塞依赖时及时同步，不等待任务临近截止才处理。',
 ])
 
+const DEFAULT_DASHBOARD_PROJECT_ID = 'task-bridge-dashboard-demo-v1'
+
+function makeDashboardDemoProject() {
+  const project = makeProject(DEFAULT_DASHBOARD_PROJECT_ID, 'Kooky 任务桥体验改版', {
+    isDemoProject: true,
+    goal: '让协作讨论、个人执行、交付验收与协作背景回填形成可追溯闭环。',
+  })
+  project.phase = 'planned'
+  project.snapshot = {
+    projectBase: '项目目标：验证任务桥从协作讨论到个人执行、交付验收与协作背景回填的完整闭环，并确认关键状态在团队计划中可见。',
+    trigger: '体验改版评审中，围绕任务闭环与仪表盘可视化推进',
+    version: 2,
+  }
+  project.discussion = [
+    { id: 'dashboard-demo-system', type: 'system', text: '已创建协作背景并挂载任务计划' },
+    { id: 'dashboard-demo-assistant', type: 'assistant', text: '项目任务已进入执行、验收与回填阶段。团队计划将按实际任务状态更新。' },
+  ]
+  const taskStates = [
+    {
+      id: 'dashboard-research', title: '可用性测试与问题归因', type: '用户研究', owner: '我', agent: '产品数字人', deadline: '9月4日',
+      goal: '完成关键任务可用性走查，定位影响任务闭环的主要问题。', deliverable: '可用性测试记录 · 在线文档', acceptance: '覆盖创建、回填、验收三个核心任务，并形成问题优先级。',
+      status: 'in_progress', workflowState: 'in_progress', submitted: false,
+    },
+    {
+      id: 'dashboard-prototype', title: '团队计划仪表盘高保真设计', type: '交互设计', owner: '我', agent: '设计数字人', deadline: '9月5日',
+      goal: '完成两层团队计划的信息架构、关键状态与响应式布局。', deliverable: '团队计划高保真原型 · Figma', acceptance: '支持抽屉与全量视图，任务状态可快速识别。',
+      status: 'pending_acceptance', workflowState: 'pending_acceptance', submitted: true,
+    },
+    {
+      id: 'dashboard-review', title: '任务回填验收路径复核', type: '体验评审', owner: '设计数字人', agent: '团队助理', deadline: '9月6日',
+      goal: '核对回填字段、验收反馈和项目背景回填的完整性。', deliverable: '验收路径评审清单 · Markdown', acceptance: '补齐退回修改的说明与后续行动，确保闭环可追溯。',
+      status: 'backfill', workflowState: 'changes_requested', submitted: true,
+    },
+    {
+      id: 'dashboard-background', title: '协作背景回填与版本沉淀', type: '项目沉淀', owner: '产品数字人', agent: '产品数字人', deadline: '9月3日',
+      goal: '将已验收的关键结论同步为可供后续任务引用的协作背景。', deliverable: '协作背景 v2 · 项目知识', acceptance: '结论、约束和复用建议均已同步到协作背景。',
+      status: 'done', workflowState: 'project_backfilled', submitted: true,
+    },
+  ]
+  project.tasks = taskStates.map((definition) => {
+    const task = makeTask(definition, project.name)
+    task.confirmed = true
+    task.status = definition.status
+    task.workflowState = definition.workflowState
+    task.submitted = definition.submitted
+    task.reviewStatus = definition.workflowState === 'changes_requested' ? 'changes_requested' : (definition.submitted ? 'pending' : null)
+    task.lastActionAt = Date.now()
+    task.backfillDemoStep = definition.submitted ? 2 : 0
+    if (definition.submitted) {
+      task.backfill = {
+        completionResult: 0,
+        deliverable: definition.deliverable,
+        completed: '已完成主要交付内容。',
+        incomplete: '',
+        incompleteReason: '',
+        blockers: '',
+        nextAction: definition.workflowState === 'changes_requested' ? '补充修改后重新提交验收。' : '',
+        effective: '',
+        issues: '',
+      }
+    }
+    return attachTaskContext(task, project)
+  })
+  return project
+}
+
 function projectKey(conversationId) {
   return String(conversationId || '')
+}
+
+const DELETED_PROJECT_IDS_STORAGE_KEY = 'task-bridge-deleted-project-ids'
+
+function readDeletedProjectIds() {
+  if (typeof window === 'undefined') return {}
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(DELETED_PROJECT_IDS_STORAGE_KEY) || '{}')
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+function persistDeletedProjectIds(ids) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(DELETED_PROJECT_IDS_STORAGE_KEY, JSON.stringify(ids))
+  } catch {
+    // Demo 在无法使用 localStorage 时仍保持当前会话内的删除状态。
+  }
 }
 
 function makeTask(task, projectName = '项目一') {
@@ -54,6 +141,9 @@ function makeTask(task, projectName = '项目一') {
     confirmed: false,
     submitted: false,
     status: 'draft',
+    workflowState: 'draft',
+    reviewStatus: null,
+    lastActionAt: null,
     messages: [
       { id: `task-created-${task.id}`, type: 'system', text: `已从「${projectName}」创建任务对话` },
       { id: `task-context-${task.id}`, type: 'assistant', text: `任务已挂载到项目。请围绕「${task.title}」推进，关键结论会在确认后回填项目。` },
@@ -101,23 +191,53 @@ function makeProject(conversationId, name = '项目一', options = {}) {
 }
 
 export const useTaskBridgeStore = defineStore('taskBridge', {
-  state: () => ({
-    projects: {},
-  }),
+  state: () => {
+    const deletedProjectIds = readDeletedProjectIds()
+    // 默认展示项目是每次刷新用于展示完整总览的样例；删除后仅在当前会话中隐藏，刷新时重新注入。
+    if (deletedProjectIds[DEFAULT_DASHBOARD_PROJECT_ID]) {
+      delete deletedProjectIds[DEFAULT_DASHBOARD_PROJECT_ID]
+      persistDeletedProjectIds(deletedProjectIds)
+    }
+    return {
+      // 默认项目用于完整展示仪表盘；数据结构和用户创建的项目一致，可在当前会话中删除。
+      projects: { [DEFAULT_DASHBOARD_PROJECT_ID]: makeDashboardDemoProject() },
+      // 阻止会话列表自动同步时把已删除的 Demo 项目重新初始化。
+      deletedProjectIds,
+      // 左侧会话入口可请求已展开的仪表盘退出，具体视图由仪表盘组件响应。
+      dashboardCloseRequest: 0,
+      dashboardOpenRequest: 0,
+      dashboardOpenProjectId: null,
+    }
+  },
 
   getters: {
-    projectFor: (state) => (conversationId) => state.projects[projectKey(conversationId)] || null,
+    projectFor: (state) => (conversationId) => {
+      const key = projectKey(conversationId)
+      if (state.deletedProjectIds[key]) return null
+      return state.projects[key] || null
+    },
     personalTasks: (state) => Object.values(state.projects).flatMap((project) =>
       (project.tasks || [])
-        .filter((task) => task.confirmed && task.owner === '我')
+        // 协作项目中的所有已确认任务都会同步到个人模块，不能按负责人截断。
+        .filter((task) => task.confirmed)
         .map((task) => ({ projectId: project.id, projectName: project.name, task })),
     ),
   },
 
   actions: {
+    requestDashboardClose() {
+      this.dashboardCloseRequest += 1
+    },
+
+    requestDashboardOpen(projectId) {
+      this.dashboardOpenProjectId = projectKey(projectId)
+      this.dashboardOpenRequest += 1
+    },
+
     ensureProject(conversationId, name) {
       const key = projectKey(conversationId)
       if (!key) return null
+      if (this.deletedProjectIds[key]) return null
       if (!this.projects[key]) this.projects[key] = makeProject(key, name)
       if (name && !this.projects[key].name) this.projects[key].name = String(name)
       return this.projects[key]
@@ -153,6 +273,9 @@ export const useTaskBridgeStore = defineStore('taskBridge', {
         confirmed: true,
         submitted: false,
         status: 'in_progress',
+        workflowState: 'in_progress',
+        reviewStatus: null,
+        lastActionAt: null,
         messages: [
           { id: `task-created-${taskId}`, type: 'system', text: project.isPersonalOnly ? '已创建个人任务对话' : `已从「${project.name}」创建任务对话` },
           { id: `task-context-${taskId}`, type: 'assistant', text: project.isPersonalOnly ? `请围绕「${title}」推进，完成后可在个人任务中回填产物。` : `任务已挂载到项目。请围绕「${title}」推进，关键结论会在确认后回填项目。` },
@@ -172,8 +295,19 @@ export const useTaskBridgeStore = defineStore('taskBridge', {
     createProject(conversationId, name, options = {}) {
       const key = projectKey(conversationId)
       if (!key) return null
+      if (this.deletedProjectIds[key]) return null
+      delete this.deletedProjectIds[key]
       this.projects[key] = makeProject(key, name, options)
       return this.projects[key]
+    },
+
+    removeProject(conversationId) {
+      const key = projectKey(conversationId)
+      if (!key) return false
+      this.deletedProjectIds[key] = true
+      persistDeletedProjectIds(this.deletedProjectIds)
+      delete this.projects[key]
+      return true
     },
 
     addDiscussion(conversationId, text, type = 'user') {
@@ -212,7 +346,10 @@ export const useTaskBridgeStore = defineStore('taskBridge', {
       const project = this.ensureProject(conversationId)
       if (!project || project.phase !== 'draft' || project.tasks.length !== TASK_SEED.length) return null
       project.phase = 'planned'
-      project.tasks.forEach((task) => { task.status = task.owner === '我' ? 'in_progress' : 'planned' })
+      project.tasks.forEach((task) => {
+        task.status = task.owner === '我' ? 'in_progress' : 'planned'
+        task.workflowState = task.status
+      })
       project.discussion.push({
         id: `confirmed-${Date.now()}`,
         type: 'assistant',
@@ -229,9 +366,13 @@ export const useTaskBridgeStore = defineStore('taskBridge', {
       if (!Array.isArray(task.contextConstraints)) task.contextConstraints = [...DEFAULT_TASK_CONSTRAINTS]
       task.confirmed = true
       task.status = task.owner === '我' ? 'in_progress' : 'planned'
+      task.workflowState = task.status
       if (project.tasks.length === TASK_SEED.length && project.tasks.every((item) => item.confirmed)) {
         project.phase = 'planned'
-        project.tasks.forEach((item) => { item.status = item.owner === '我' ? 'in_progress' : 'planned' })
+        project.tasks.forEach((item) => {
+          item.status = item.owner === '我' ? 'in_progress' : 'planned'
+          item.workflowState = item.status
+        })
         project.discussion.push({
           id: `confirmed-${Date.now()}`,
           type: 'assistant',
@@ -262,6 +403,8 @@ export const useTaskBridgeStore = defineStore('taskBridge', {
       const task = project?.tasks.find((item) => item.id === taskId)
       if (!project || !task) return null
       task.status = 'backfill'
+      task.workflowState = 'backfill_editing'
+      task.reviewStatus = null
       project.phase = 'backfill'
       project.backfillDraft = project.backfillDraft || `「${task.title}」已完成：产物已提交，关键结论和执行过程可供团队评审。`
       project.echoDraft = project.echoDraft || '先明确比较维度，再收集证据并形成结论，能减少后续返工。'
@@ -273,8 +416,14 @@ export const useTaskBridgeStore = defineStore('taskBridge', {
       if (!project || !project.backfillDraft.trim()) return null
       const task = project.tasks.find((item) => item.id === project.activeTaskId)
         || project.tasks.find((item) => item.status === 'backfill')
-      if (task) task.submitted = true
-      project.phase = 'published'
+      if (task) {
+        task.submitted = true
+        task.status = 'pending_acceptance'
+        task.workflowState = 'pending_acceptance'
+        task.reviewStatus = 'pending'
+        task.lastActionAt = Date.now()
+      }
+      project.phase = 'pending_acceptance'
       if (!project.discussion.some((item) => item.id === `backfill-user-${task?.id || 'project'}`)) {
         project.discussion.push({
           id: `backfill-user-${task?.id || 'project'}`,
@@ -294,6 +443,57 @@ export const useTaskBridgeStore = defineStore('taskBridge', {
           },
         })
       }
+      return project
+    },
+
+    reviewBackfill(conversationId, taskId, decision) {
+      const project = this.ensureProject(conversationId)
+      const task = project?.tasks.find((item) => item.id === taskId)
+      if (!project || !task || task.workflowState !== 'pending_acceptance') return null
+
+      if (decision === 'changes_requested') {
+        task.submitted = false
+        task.status = 'backfill'
+        task.workflowState = 'changes_requested'
+        task.reviewStatus = 'changes_requested'
+        project.phase = 'backfill'
+        project.discussion.push({
+          id: `backfill-returned-${task.id}-${Date.now()}`,
+          type: 'assistant',
+          text: `接收方已退回「${task.title}」：请补充产物说明或处理遗留项后重新提交。`,
+        })
+      } else {
+        task.status = 'accepted'
+        task.workflowState = 'accepted'
+        task.reviewStatus = 'accepted'
+        project.phase = 'accepted'
+        project.discussion.push({
+          id: `backfill-accepted-${task.id}-${Date.now()}`,
+          type: 'assistant',
+          text: `「${task.title}」已验收通过，等待将关键结论回填至协作背景。`,
+        })
+      }
+      task.lastActionAt = Date.now()
+      return project
+    },
+
+    syncAcceptedBackfill(conversationId, taskId) {
+      const project = this.ensureProject(conversationId)
+      const task = project?.tasks.find((item) => item.id === taskId)
+      if (!project || !task || task.workflowState !== 'accepted') return null
+      const summary = task.backfill?.completed || project.backfillDraft || `「${task.title}」已验收通过，关键结论已沉淀。`
+      project.snapshot.projectBase = `${project.snapshot.projectBase}\n\n任务回填：${summary}`
+      project.snapshot.version += 1
+      project.echoPublished = true
+      project.phase = 'published'
+      task.status = 'completed'
+      task.workflowState = 'project_backfilled'
+      task.lastActionAt = Date.now()
+      project.discussion.push({
+        id: `backfill-synced-${task.id}-${Date.now()}`,
+        type: 'echo',
+        text: `「${task.title}」的验收结论已回填至协作背景 v${project.snapshot.version}。`,
+      })
       return project
     },
 

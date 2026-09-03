@@ -1,0 +1,15 @@
+Kooky Demo 一键启动说明
+
+Mac：
+1. 双击“Start-Kooky-Demo-macOS.command”。
+2. 浏览器会自动打开 Demo。
+3. 使用期间保持启动窗口打开。
+
+Windows：
+1. 双击“Start-Kooky-Demo-Windows.bat”。
+2. 浏览器会自动打开 Demo。
+3. 使用期间保持启动窗口打开。
+
+Windows 版本使用系统自带 PowerShell，不需要安装 Node.js。
+
+如果 macOS 阻止打开：右键“Start-Kooky-Demo-macOS.command” → 打开。

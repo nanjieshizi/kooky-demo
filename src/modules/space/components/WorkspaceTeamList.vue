@@ -24,16 +24,25 @@
                 <span class="submenu-item-preview">{{ taskBridgeProjectPreview(project) }}</span>
               </span>
             </button>
-            <TransitionGroup v-if="taskBridgePersonalTasks(project).length" name="project-task" tag="div" class="submenu-project-tasks" appear>
+            <button
+              type="button"
+              class="submenu-project-delete"
+              :aria-label="`删除项目 ${project.name}`"
+              title="删除项目"
+              @click.stop="removeTaskBridgeProject(project)"
+            >×</button>
+            <TransitionGroup v-if="taskBridgeProjectTasks(project).length" name="project-task" tag="div" class="submenu-project-tasks" appear>
               <button
-                v-for="task in taskBridgePersonalTasks(project)"
+                v-for="task in taskBridgeProjectTasks(project)"
                 :key="`${project.id}-${task.id}`"
                 type="button"
                 class="submenu-project-task"
                 @click="onTaskBridgeTaskClick(project, task)"
               >
-                <span class="submenu-project-task-title">{{ task.title }}</span>
-                <span class="submenu-project-task-meta">我的任务</span>
+                <span class="submenu-project-task-copy">
+                  <span class="submenu-project-task-title">{{ task.title }}</span>
+                  <span class="submenu-project-task-meta">{{ task.owner === '我' ? '我的任务' : task.owner }}</span>
+                </span>
               </button>
             </TransitionGroup>
           </div>
@@ -42,6 +51,11 @@
     </div>
 
     <!-- 任务桥改版：不展示团队群聊会话列表。 -->
+    <div v-if="isActiveCollaborationNav && !taskBridgeProjects.length" class="collaboration-history-empty" role="status">
+      <img :src="collaborationHistoryEmpty" alt="" />
+      <p><strong>没有历史对话</strong><span>新建项目后即可开始协作</span></p>
+    </div>
+
     <div
       v-if="false"
       class="submenu-category"
@@ -147,9 +161,9 @@
       </div>
     </div>
 
-    <!-- 数字人分组 -->
+    <!-- 任务桥改版：协作侧栏只展示项目，不再展示企业数字人列表。 -->
     <div
-      v-if="isActiveCollaborationNav && !taskBridgeProjects.length"
+      v-if="false"
       class="submenu-category"
       :class="{ 'is-expanded': expandedCategories.digitalHuman }"
     >
@@ -297,7 +311,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { CaretRight, Loading } from '@element-plus/icons-vue'
 import { useUIStore } from '@/modules/space/uiStore'
 import { useGroupStore } from '@/modules/group/store'
@@ -313,6 +327,7 @@ import marketIcon from '@/assets/home/market.png'
 import myIcon from '@/assets/home/my.png'
 import defaultAgentAvatar from '@/assets/soloTeam/default_agent.svg'
 import defaultAvatar from '@/assets/default-avatar.svg'
+import collaborationHistoryEmpty from '@/assets/collaboration-history-empty.png'
 import { useTaskBridgeStore } from '@/modules/task-bridge/store'
 
 const props = defineProps({
@@ -358,7 +373,11 @@ const expandedCategories = ref({
   digitalHuman: true, // 数字人默认展开
 })
 
-const taskBridgeProjects = computed(() => Object.values(taskBridgeStore.projects).filter((project) => !project.isPersonalOnly && !String(project.id).startsWith('personal-task-')))
+const taskBridgeProjects = computed(() => Object.values(taskBridgeStore.projects).filter((project) => (
+  !taskBridgeStore.deletedProjectIds[String(project.id)]
+  && !project.isPersonalOnly
+  && !String(project.id).startsWith('personal-task-')
+)))
 
 const AVATAR_COLORS = ['#7569e8', '#f39a62', '#5da7a4', '#d8799d', '#5d8bc9']
 
@@ -522,6 +541,7 @@ function toggleCategory(categoryId) {
 async function onTaskBridgeProjectClick(project) {
   const conversationId = String(project?.id || '')
   if (!conversationId) return
+  taskBridgeStore.requestDashboardClose()
   // 点击项目时退出当前任务对话；点击子任务会在选中项目后重新进入对应任务。
   taskBridgeStore.closeTaskConversation(conversationId)
   uiStore.setActiveNavigation(props.navKey, conversationId)
@@ -534,8 +554,46 @@ async function onTaskBridgeProjectClick(project) {
   await groupStore.selectConversation(conversationId, { forceRead: true })
 }
 
-function taskBridgePersonalTasks(project) {
-  return (project?.tasks || []).filter((task) => task.confirmed && task.owner === '我')
+async function removeTaskBridgeProject(project) {
+  const conversationId = String(project?.id || '')
+  if (!conversationId) return
+
+  try {
+    await ElMessageBox.confirm(
+      `删除「${project.name}」后，该项目下的任务、讨论和回填记录将从当前 Demo 中移除。`,
+      '删除项目',
+      { confirmButtonText: '删除项目', cancelButtonText: '取消', type: 'warning' },
+    )
+  } catch {
+    return
+  }
+
+  const nextProject = taskBridgeProjects.value.find((item) => String(item.id) !== conversationId) || null
+  const isActive = String(uiStore.activeSecondaryNav) === conversationId || String(groupStore.currentSpaceId) === conversationId
+
+  // 先切走当前项目，避免 currentSpaceId 的监听逻辑重新创建刚删除的项目。
+  if (isActive) {
+    uiStore.setActiveNavigation(props.navKey, nextProject ? String(nextProject.id) : null)
+    groupStore.setCurrentSpaceId(nextProject ? String(nextProject.id) : null)
+    groupStore.currentConversationId = nextProject ? String(nextProject.id) : null
+  }
+
+  taskBridgeStore.removeProject(conversationId)
+  groupStore.markProjectDeleted(conversationId)
+  // 会话列表会在后台刷新；通过群会话的正式移除入口写入 _leftConversationIds，
+  // 后续加载会自动过滤该项目，避免仅 splice 一次后又被 Mock 数据回填。
+  groupStore._onConversationLeft({
+    conversationId,
+    conversationName: project.name,
+    cardType: 'dissolved',
+  })
+
+  if (nextProject && isActive) await onTaskBridgeProjectClick(nextProject)
+  ElMessage.success(`已删除项目「${project.name}」`)
+}
+
+function taskBridgeProjectTasks(project) {
+  return (project?.tasks || []).filter((task) => task.confirmed)
 }
 
 async function onTaskBridgeTaskClick(project, task) {
@@ -834,6 +892,7 @@ async function confirmRemoveDigitalHumanDialog() {
 }
 
 async function onSpaceClick(spaceId) {
+  taskBridgeStore.requestDashboardClose()
   groupStore.cancelCreatingTeam()
   groupStore.setCurrentSpaceId(spaceId)
   if (spaceId !== groupStore.currentConversationId) {
@@ -996,6 +1055,7 @@ async function onSpaceClick(spaceId) {
 }
 
 .submenu-item--project {
+  box-sizing: border-box;
   width: 100%;
   min-height: 54px;
   justify-content: flex-start;
@@ -1023,9 +1083,53 @@ async function onSpaceClick(spaceId) {
 }
 
 .submenu-project-block {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.submenu-item--project { padding-right: 42px; }
+
+.submenu-project-delete {
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: #9aa1ad;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(.92);
+  transition: opacity .16s ease, transform .16s ease, color .16s ease, background .16s ease, border-color .16s ease;
+}
+
+.submenu-project-block:hover .submenu-project-delete,
+.submenu-project-delete:focus-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.submenu-project-delete:hover {
+  border-color: #efcbc4;
+  background: #fff3f1;
+  color: #bd5549;
+}
+
+@media (max-width: 640px) {
+  .submenu-project-delete {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .project-card-enter-active,
@@ -1038,11 +1142,24 @@ async function onSpaceClick(spaceId) {
 .project-card-leave-active { position: absolute; width: calc(100% - 28px); }
 
 .submenu-project-tasks {
+  position: relative;
+  box-sizing: border-box;
   display: grid;
   gap: 8px;
+  width: calc(100% - 12px);
   margin: 0 0 12px 12px;
-  padding-left: 8px;
-  border-left: 1px solid #e5e8ef;
+  padding-left: 0;
+  border-left: 0;
+}
+
+.submenu-project-tasks::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -8px;
+  width: 1px;
+  background: #e5e8ef;
+  content: '';
 }
 
 .project-task-enter-active,
@@ -1056,11 +1173,13 @@ async function onSpaceClick(spaceId) {
 
 .submenu-project-task {
   display: flex;
+  box-sizing: border-box;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  min-height: 42px;
+  height: 54px;
+  min-height: 54px;
   padding: 0 12px;
   border: 0;
   border-radius: 12px;
@@ -1075,21 +1194,33 @@ async function onSpaceClick(spaceId) {
 
 .submenu-project-task:hover {
   background: rgba(255, 255, 255, 0.8);
-  transform: translateX(2px);
+  transform: none;
+}
+
+.submenu-project-task-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 0;
 }
 
 .submenu-project-task-title {
+  display: block;
   overflow: hidden;
   font-size: 14px;
   font-weight: 400;
+  line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .submenu-project-task-meta {
-  flex: 0 0 auto;
   color: #5d6474;
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.2;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1356,6 +1487,48 @@ async function onSpaceClick(spaceId) {
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
+}
+
+.collaboration-history-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 8px 30px;
+  color: #9aa1ad;
+  text-align: center;
+}
+
+.collaboration-history-empty img {
+  width: 132px;
+  height: 132px;
+  object-fit: contain;
+}
+
+.collaboration-history-empty p {
+  max-width: 170px;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.collaboration-history-empty p strong,
+.collaboration-history-empty p span {
+  display: block;
+}
+
+.collaboration-history-empty p strong {
+  color: #697383;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.collaboration-history-empty p span {
+  margin-top: 3px;
+  color: #a2a9b4;
+  font-size: 10px;
+  font-weight: 400;
 }
 
 .submenu-empty-state {

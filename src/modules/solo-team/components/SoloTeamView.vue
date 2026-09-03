@@ -44,7 +44,12 @@
     <!-- 无任务时展示普通对话空白页，不再显示封面式创建引导 -->
     <section v-else class="solo-empty-chat" aria-label="个人对话">
       <header class="solo-empty-chat__header"><strong>个人</strong></header>
-      <div class="solo-empty-chat__body"></div>
+      <div class="solo-empty-chat__body">
+        <div class="solo-empty-chat__welcome" role="status">
+          <strong>从一句话开始</strong>
+          <span>描述你想完成的事情，我会帮你梳理并继续推进。</span>
+        </div>
+      </div>
       <form class="solo-empty-chat__composer" @submit.prevent>
         <textarea rows="2" readonly placeholder="你可以输入任何你想做的事情"></textarea>
         <div class="solo-empty-chat__footer">
@@ -237,7 +242,10 @@ function handleOnePersonDissolved() {
   font-weight: 400;
 }
 
-.solo-empty-chat__body { flex: 1; min-height: 0; }
+.solo-empty-chat__body { flex: 1; min-height: 0; display:flex; align-items:center; justify-content:center; padding:0 24px 54px; box-sizing:border-box; }
+.solo-empty-chat__welcome { display:flex; max-width:360px; flex-direction:column; align-items:center; gap:7px; color:#969daa; text-align:center; }
+.solo-empty-chat__welcome strong { color:#3d4552; font-size:16px; font-weight:600; letter-spacing:-.01em; }
+.solo-empty-chat__welcome span { font-size:12px; line-height:1.6; }
 .solo-empty-chat__composer { margin: 0 32px; padding: 11px 14px 9px; border: 1.5px solid #dce2eb; border-radius: 15px; background: #fff; box-shadow: 0 8px 22px rgba(82,98,122,.10); }
 .solo-empty-chat__composer textarea { display: block; width: 100%; min-height: 38px; box-sizing: border-box; resize: none; border: 0; outline: 0; background: transparent; color: #303746; font: 13px/1.55 PingFang SC, sans-serif; }
 .solo-empty-chat__composer textarea::placeholder { color: #a1a8b4; }

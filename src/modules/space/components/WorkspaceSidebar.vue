@@ -248,6 +248,11 @@ const deerflowStore = useDeerflowChatStore()
 const notificationStore = useNotificationStore()
 const taskBridgeStore = useTaskBridgeStore()
 const cliUnreadCount = computed(() => notificationStore.unreadCount)
+const taskBridgeProjects = computed(() => Object.values(taskBridgeStore.projects).filter((project) => (
+  !taskBridgeStore.deletedProjectIds[String(project.id)]
+  && !project.isPersonalOnly
+  && !String(project.id).startsWith('personal-task-')
+)))
 const personalTaskChats = computed(() => taskBridgeStore.personalTasks)
 const collaborationTaskChats = computed(() => personalTaskChats.value.filter((item) => !String(item.projectId).startsWith('personal-task-')))
 const personalOnlyTaskChats = computed(() => personalTaskChats.value.filter((item) => String(item.projectId).startsWith('personal-task-')))
@@ -508,7 +513,7 @@ async function onPrimaryNavClick(item) {
     const groupConversations = groupStore.groupConversations
     const privateChats = privateStore.sortedPrivateChats
     const digitalHumanAgents = digitalHumanStore.sortedAgents
-    if (groupConversations.length > 0 || privateChats.length > 0 || digitalHumanAgents.length > 0) {
+    if (taskBridgeProjects.value.length > 0 || groupConversations.length > 0 || privateChats.length > 0 || digitalHumanAgents.length > 0) {
       uiStore.expandSidebar()
 
       // 优先恢复离开协作前最后选中的二级 key（不读 activeSecondaryNav，避免被其他一级污染）
@@ -531,7 +536,12 @@ async function onPrimaryNavClick(item) {
         nextConversationId = lastSecondary
       }
 
-      // 缓存命中失败：统一走默认兜底链 群组首项 → 私聊首项 → 数字人首项
+      // 任务桥左侧只展示项目；存在项目时优先打开第一个可见项目，避免落到隐藏的旧群聊。
+      if (!taskBridgeProjects.value.some((project) => String(project.id) === String(nextConversationId))) {
+        nextConversationId = taskBridgeProjects.value[0]?.id || null
+      }
+
+      // 没有任务桥项目时，沿用原有兜底链：群组首项 → 私聊首项 → 数字人首项。
       if (!nextConversationId) {
         nextConversationId = getDefaultSecondaryKey(
           item.key,
@@ -568,6 +578,11 @@ async function onPrimaryNavClick(item) {
           }
         }
       } else if (nextConversationId) {
+        if (taskBridgeProjects.value.some((project) => String(project.id) === String(nextConversationId))) {
+          groupStore.setCurrentSpaceId(nextConversationId)
+          groupStore.currentConversationId = nextConversationId
+          return
+        }
         await onSpaceClick(nextConversationId)
       }
     } else {
